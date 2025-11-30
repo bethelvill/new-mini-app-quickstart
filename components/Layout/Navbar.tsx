@@ -480,6 +480,87 @@ export default function Navbar() {
                       className="!w-full !bg-gradient-to-r !from-violet-500 !to-pink-500 hover:!from-violet-600 hover:!to-pink-600 !text-white !font-semibold !px-4 !py-3 !rounded-xl !transition-all"
                       disconnectedLabel="Connect Wallet"
                     />
+                    <WalletDropdown className="!bg-transparent !backdrop-blur-xl !border-none !border-white/10 !rounded-2xl !p-0 !my-0 min-w-[280px]">
+                      {/* Identity Section */}
+                      <Identity
+                        className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20"
+                        hasCopyAddressOnClick
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="w-12 h-12 rounded-xl" />
+                          <div className="flex-1 min-w-0">
+                            <Name className="text-sm font-semibold text-white block truncate" />
+                            <Address className="text-xs text-gray-400 block truncate" />
+                          </div>
+                        </div>
+                      </Identity>
+
+                      {/* Balance Section */}
+                      <Link href="/wallet" className="block mx-2">
+                        <div className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <WalletIcon className="w-4 h-4 text-emerald-400" />
+                              <span className="text-xs text-gray-400">
+                                Balance
+                              </span>
+                            </div>
+                            <span className="text-sm font-bold text-emerald-400">
+                              {balance.toFixed(2)} USDC
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+
+                      {/* Basename - Link to profile or create one */}
+                      <WalletDropdownBasename className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-violet-500/10 !rounded-xl !transition-all" />
+
+                      {/* Fund Link - Easy way to add funds */}
+                      <WalletDropdownFundLink
+                        className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-emerald-500/10 !rounded-xl !transition-all"
+                        text="Add Funds"
+                        popupSize="md"
+                      />
+
+                      <div className="h-px bg-white/5 my-2" />
+
+                      <div className="text-gray-400 text-xs uppercase tracking-wider px-3 py-1">
+                        My Account
+                      </div>
+
+                      <Link
+                        href="/notifications"
+                        className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                      >
+                        <Bell className="w-4 h-4" />
+                        <span>Notifications</span>
+                        {unreadCount > 0 && (
+                          <Badge className="ml-auto bg-pink-500/20 text-pink-400 border-pink-500/30">
+                            {unreadCount}
+                          </Badge>
+                        )}
+                      </Link>
+                      <Link
+                        href="/wallet"
+                        className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                      >
+                        <WalletIcon className="w-4 h-4" />
+                        <span>Wallet</span>
+                      </Link>
+                      <Link
+                        href="/profile"
+                        className="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                      >
+                        <Settings className="w-4 h-4" />
+                        <span>Settings</span>
+                      </Link>
+
+                      <div className="h-px bg-white/5 my-2" />
+                      <WalletDropdownDisconnect
+                        className="!w-full !justify-start !px-3 !py-2.5 !text-red-400 hover:!text-red-300 hover:!bg-red-500/10 !rounded-xl !transition-all"
+                        text="Disconnect"
+                      />
+                    </WalletDropdown>
                   </Wallet>
                 </div>
               )}

@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { getCategoryBadge } from '@/lib/poll-badges';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { POLL_CATEGORIES } from '@/constants/categories';
 import { capitalize } from '@/lib/capitalize';
 import { useAllPolls } from '@/lib/polls';
 import { useMyStakes } from '@/lib/stakes';
