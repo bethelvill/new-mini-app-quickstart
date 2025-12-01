@@ -1,16 +1,16 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useAccount,
-  useSignMessage,
   useChainId,
-  useSwitchChain,
   usePublicClient,
+  useSignMessage,
+  useSwitchChain,
 } from "wagmi";
-import { verifyMessage } from "viem";
-import { useQueryClient } from "@tanstack/react-query";
-import { useGetWalletMessage, useWalletSignIn, authApi } from "@/lib/auth";
+
+import { authApi, useGetWalletMessage, useWalletSignIn } from "@/lib/auth";
 import { useUserProfile } from "@/lib/user";
 import { useAuthStore } from "@/stores/authStore";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 // Expected chain ID from environment
@@ -44,11 +44,11 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
   const getMessageMutation = useGetWalletMessage();
   const signInMutation = useWalletSignIn();
 
-  const { user, updateUserData, logout: storeLogout } = useAuthStore();
+  const { user, setUser, updateAdmin, updateSubAdmin, updateBalance, logout: storeLogout } = useAuthStore();
 
   // Check if user is on wrong network
   const isWrongNetwork = isConnected && chainId !== EXPECTED_CHAIN_ID;
-
+  console.log("Current chainId:", address, "Expected:", EXPECTED_CHAIN_ID);
   // Switch to correct network
   const switchToCorrectNetwork = useCallback(async () => {
     try {
@@ -70,10 +70,34 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
   // Update auth store when profile is fetched successfully
   useEffect(() => {
     if (profileData?.data && isConnected) {
-      updateUserData(profileData.data, profileData.data.wallet?.balance);
+      const userData = profileData.data;
+
+      // Set user data
+      setUser(userData);
+
+      // Check for admin roles
+      if (
+        userData.roles?.includes("admin") ||
+        userData.roles?.includes("super_admin")
+      ) {
+        updateAdmin(true);
+        updateSubAdmin(false);
+      } else if (userData.roles?.includes("sub_admin")) {
+        updateAdmin(false);
+        updateSubAdmin(true);
+      } else {
+        updateAdmin(false);
+        updateSubAdmin(false);
+      }
+
+      // Update balance
+      if (userData.wallet?.balance !== undefined) {
+        updateBalance(userData.wallet.balance);
+      }
+
       profileChecked.current = true;
     }
-  }, [profileData, isConnected, updateUserData]);
+  }, [profileData, isConnected, setUser, updateAdmin, updateSubAdmin, updateBalance]);
 
   // Reset when wallet disconnects
   useEffect(() => {
@@ -86,11 +110,6 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
   const isWalletConnected = isConnected;
   const isAuthenticated = !!user && isConnected;
 
-  // Show sign-in only when:
-  // 1. Wallet is connected
-  // 2. No user in store
-  // 3. Profile fetch is done (not loading)
-  // 4. Profile fetch was attempted (isFetched or error)
   const showSignIn =
     isConnected && !user && !isLoadingProfile && (isFetched || isProfileError);
 
@@ -127,50 +146,61 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
         throw new Error("Failed to get message");
       }
 
+      // Message is already prepared by backend, sign it directly
       const message = messageResponse.data.message;
 
       // Step 2: Sign the message with wallet
       const signature = await signMessageAsync({ message });
 
-      // Step 3: Check if smart wallet and verify on frontend
+      // Step 3: Check if smart wallet and verify on frontend (same pattern as backend)
       let verified: boolean | undefined;
       if (publicClient && address) {
         try {
-          const code = await publicClient.getCode({ address });
-          const isSmartWallet = code && code !== "0x";
+          const bytecode = await publicClient.getCode({ address });
+          console.log("Contract bytecode:", bytecode);
+          const isSmartWallet = bytecode && bytecode !== "0x";
 
           if (isSmartWallet) {
-            // Smart wallet - try to verify signature on frontend
-            try {
-              const isValid = await verifyMessage({
-                address,
-                message,
-                signature,
-              });
-              verified = isValid;
-            } catch {
-              // Verification failed, let backend handle it
-              verified = undefined;
-            }
+            toast.info("Smart wallet detected");
+            verified = true;
           }
         } catch {
-          // Could not check code, proceed without verified flag
+          // Could not check bytecode, proceed without verified flag
         }
       }
-      console.log(address, "Verified:", verified ? "yes" : "no or undefined");
+
       // Step 4: Verify with backend and get tokens
       const signInResponse = await signInMutation.mutateAsync({
         message,
         signature,
-        verified: true,
+        ...(verified === true && { verified: true }),
       });
 
       if (signInResponse.data?.user) {
-        // Update auth store with user data
-        updateUserData(
-          signInResponse.data.user,
-          signInResponse.data.user.wallet?.balance
-        );
+        const userData = signInResponse.data.user;
+
+        // Set user data in auth store
+        setUser(userData);
+
+        // Check for admin roles (same pattern as login page)
+        if (
+          userData.roles?.includes("admin") ||
+          userData.roles?.includes("super_admin")
+        ) {
+          updateAdmin(true);
+          updateSubAdmin(false);
+        } else if (userData.roles?.includes("sub_admin")) {
+          updateAdmin(false);
+          updateSubAdmin(true);
+        } else {
+          updateAdmin(false);
+          updateSubAdmin(false);
+        }
+
+        // Update balance if available
+        if (userData.wallet?.balance !== undefined) {
+          updateBalance(userData.wallet.balance);
+        }
 
         // Invalidate user profile query to sync state
         queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
@@ -204,7 +234,10 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
     signInMutation,
     signMessageAsync,
     publicClient,
-    updateUserData,
+    setUser,
+    updateAdmin,
+    updateSubAdmin,
+    updateBalance,
     queryClient,
   ]);
 

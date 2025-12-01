@@ -1,40 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useAccountEffect } from "wagmi";
-import {
-  ConnectWallet,
-  Wallet,
-  WalletDropdown,
-  WalletDropdownBasename,
-  WalletDropdownFundLink,
-  WalletDropdownDisconnect,
-  WalletAdvancedAddressDetails
-} from "@coinbase/onchainkit/wallet";
-import { Address, Avatar, Name, Identity } from "@coinbase/onchainkit/identity";
-import { useAuthStore } from "@/stores/authStore";
-import { useUnreadNotificationsCount } from "@/lib/notifications";
-import { useWalletBalance } from "@/lib/wallet";
-import { useWalletAuth } from "@/hooks/use-wallet-auth";
-import {
-  Menu,
-  X,
-  User,
-  Wallet as WalletIcon,
-  Home,
-  Trophy,
-  Sparkles,
-  TrendingUp,
-  CircleDollarSign,
-  ChevronDown,
-  Settings,
-  Shield,
-  Bell,
-  Crown,
-  Loader2,
-} from "lucide-react";
+import { Logo } from "@/assets/logo";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,14 +10,52 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Badge } from "@/components/ui/badge";
+import { useWalletAuth } from "@/hooks/use-wallet-auth";
+import { useUnreadNotificationsCount } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
-import { Logo } from "@/assets/logo";
+import { useWalletBalance } from "@/lib/wallet";
+import { useAuthStore } from "@/stores/authStore";
+import {
+  Address,
+  Avatar,
+  EthBalance,
+  Identity,
+  Name,
+} from "@coinbase/onchainkit/identity";
+import {
+  ConnectWallet,
+  Wallet,
+  WalletDropdown,
+  WalletDropdownBasename,
+  WalletDropdownDisconnect,
+  WalletDropdownFundLink
+} from "@coinbase/onchainkit/wallet";
+import {
+  Bell,
+  ChevronDown,
+  CircleDollarSign,
+  Crown,
+  Home,
+  Loader2,
+  Menu,
+  Settings,
+  Shield,
+  Sparkles,
+  TrendingUp,
+  Trophy,
+  User,
+  Wallet as WalletIcon,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAccountEffect } from "wagmi";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, balance, isAdmin, isSubAdmin, updateBalance } = useAuthStore();
+  const { user, isAdmin, isSubAdmin, updateBalance } = useAuthStore();
   const pathname = usePathname();
 
   // Use the comprehensive wallet auth hook
@@ -338,35 +343,12 @@ export default function Navbar() {
                   <Avatar className="!w-9 !h-9 rounded-xl" />
                 </ConnectWallet>
                 <WalletDropdown className="!bg-transparent !backdrop-blur-xl !border-none !border-white/10 !rounded-2xl !p-0 !my-0 min-w-[280px]">
-                  {/* Identity Section */}
-                  <WalletAdvancedAddressDetails/>
-                  <Identity
-                    className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20"
-                    hasCopyAddressOnClick
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="w-12 h-12 rounded-xl" />
-                      <div className="flex-1 min-w-0">
-                        <Name className="text-sm font-semibold text-white block truncate" />
-                        <Address className="text-xs text-gray-400 block truncate" />
-                      </div>
-                    </div>
+                  <Identity className="px-4 pt-3 pb-2" hasCopyAddressOnClick>
+                    <Avatar />
+                    <Name />
+                    <Address className={"#fff"} />
+                    <EthBalance />
                   </Identity>
-
-                  {/* Balance Section */}
-                  <Link href="/wallet" className="block mx-2">
-                    <div className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <WalletIcon className="w-4 h-4 text-emerald-400" />
-                          <span className="text-xs text-gray-400">Balance</span>
-                        </div>
-                        <span className="text-sm font-bold text-emerald-400">
-                          {balance.toFixed(2)} USDC
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
 
                   {/* Basename - Link to profile or create one */}
                   <WalletDropdownBasename className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-violet-500/10 !rounded-xl !transition-all" />
@@ -480,7 +462,7 @@ export default function Navbar() {
                 <ConnectWallet className="!bg-transparent !p-0 !min-w-0">
                   <Avatar className="!w-9 !h-9 rounded-xl" />
                 </ConnectWallet>
-                <WalletDropdown className="!bg-black/95 !backdrop-blur-xl !border !border-white/10 !rounded-2xl !p-2 !my-0 min-w-[280px]">
+                <WalletDropdown className="!bg-black/95 !backdrop-blur-xl !border !border-white/10 !rounded-2xl !p-2 !my-0 min-w-[280px] !max-h-[70vh] !overflow-y-auto">
                   <Identity
                     className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-violet-500/10 to-pink-500/10 border border-purple-500/20"
                     hasCopyAddressOnClick
@@ -493,20 +475,6 @@ export default function Navbar() {
                       </div>
                     </div>
                   </Identity>
-
-                  <Link href="/wallet" className="block">
-                    <div className="px-3 py-3 mb-2 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <WalletIcon className="w-4 h-4 text-emerald-400" />
-                          <span className="text-xs text-gray-400">Balance</span>
-                        </div>
-                        <span className="text-sm font-bold text-emerald-400">
-                          {balance.toFixed(2)} USDC
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
 
                   <WalletDropdownBasename className="!px-3 !py-2.5 !text-gray-300 hover:!text-white hover:!bg-violet-500/10 !rounded-xl !transition-all" />
                   <WalletDropdownFundLink

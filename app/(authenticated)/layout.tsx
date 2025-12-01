@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMiniKit, useQuickAuth } from "@coinbase/onchainkit/minikit";
-import { useAuthStore } from "@/stores/authStore";
 import { useWalletBalance } from "@/lib";
+import { useAuthStore } from "@/stores/authStore";
+import { useMiniKit, useQuickAuth } from "@coinbase/onchainkit/minikit";
+import { useEffect, useState } from "react";
 
 interface AuthResponse {
   success: boolean;
@@ -21,7 +20,7 @@ export default function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isFrameReady, setFrameReady, context } = useMiniKit();
+  const { isFrameReady, setFrameReady, context,  } = useMiniKit();
   const { setUser, updateAdmin, updateSubAdmin, updateBalance } =
     useAuthStore();
   const [isInitialized, setIsInitialized] = useState(false);
@@ -91,38 +90,38 @@ export default function AuthenticatedLayout({
   }, [balanceData, balanceSuccess, updateBalance]);
 
   // Show loading state while initializing
-  if (!isFrameReady || isAuthLoading) {
+  if (!isFrameReady) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400 mb-4"></div>
-          <p className="text-gray-400">Connecting to Farcaster...</p>
+          <p className="text-gray-400">Connecting...</p>
         </div>
       </div>
     );
   }
 
   // Show error if auth failed
-  if (authError || (authData && !authData.success)) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center flex flex-col items-center max-w-md px-4">
-          <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
-            <span className="text-2xl">⚠️</span>
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">
-            Authentication Required
-          </h2>
-          <p className="text-gray-400 mb-4">
-            Please open this app from within Farcaster to authenticate.
-          </p>
-          <p className="text-sm text-gray-500">
-            {authData?.message || "Unable to verify your identity"}
-          </p>
-        </div>
-      </div>
-    );
-  }
+  // if (authError || (authData && !authData.success)) {
+  //   return (
+  //     <div className="min-h-screen bg-black flex items-center justify-center">
+  //       <div className="text-center flex flex-col items-center max-w-md px-4">
+  //         <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
+  //           <span className="text-2xl">⚠️</span>
+  //         </div>
+  //         <h2 className="text-xl font-bold text-white mb-2">
+  //           Authentication Required
+  //         </h2>
+  //         <p className="text-gray-400 mb-4">
+  //           Please open this app from within Farcaster to authenticate.
+  //         </p>
+  //         <p className="text-sm text-gray-500">
+  //           {authData?.message || "Unable to verify your identity"}
+  //         </p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return <>{children}</>;
 }
