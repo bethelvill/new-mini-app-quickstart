@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Empty turbopack config to allow webpack config (Next.js 16 uses Turbopack by default)
+  turbopack: {},
   webpack: (config) => {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     // Fix for MetaMask SDK React Native dependencies in browser
@@ -21,10 +23,6 @@ const nextConfig: NextConfig = {
         hostname: 'imagedelivery.net',
       },
     ],
-  },
-  // Disable ESLint during builds (for faster builds)
-  eslint: {
-    ignoreDuringBuilds: true,
   },
   // Disable TypeScript errors during builds
   typescript: {
