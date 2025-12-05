@@ -164,7 +164,6 @@ export default function WalletPage() {
         onSuccess: () => {
           toast.success("Withdrawal initiated");
           setWithdrawalAmount("");
-          setWalletAddress("");
           setIsWithdrawDialogOpen(false);
           refetchTransactions();
         },
@@ -737,7 +736,6 @@ export default function WalletPage() {
                 onClick={() => {
                   setIsWithdrawDialogOpen(false);
                   setWithdrawalAmount("");
-                  setWalletAddress("");
                 }}
                 className="flex-1 h-11 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl"
               >
