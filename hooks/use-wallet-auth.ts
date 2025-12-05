@@ -32,6 +32,7 @@ interface UseWalletAuthReturn {
 export const useWalletAuth = (): UseWalletAuthReturn => {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authCleared, setAuthCleared] = useState(false);
   const profileChecked = useRef(false);
 
   const { address, isConnected } = useAccount();
@@ -99,19 +100,57 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
     }
   }, [profileData, isConnected, setUser, updateAdmin, updateSubAdmin, updateBalance]);
 
+  // Clear user from store when profile fetch fails
+  useEffect(() => {
+    if (isProfileError && isConnected) {
+      setUser(null);
+      updateAdmin(false);
+      updateSubAdmin(false);
+      setAuthCleared(true);
+    }
+  }, [isProfileError, isConnected, setUser, updateAdmin, updateSubAdmin]);
+
   // Reset when wallet disconnects
   useEffect(() => {
     if (!isConnected) {
       profileChecked.current = false;
+      setAuthCleared(false);
     }
   }, [isConnected]);
+
+  // Listen for auth being cleared (e.g., after 401)
+  useEffect(() => {
+    const checkAuth = () => {
+      const hasToken = !!localStorage.getItem("accessToken");
+      if (!hasToken && isConnected && !user) {
+        setAuthCleared(true);
+      }
+    };
+
+    // Check on mount
+    checkAuth();
+
+    // Listen for storage changes
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "accessToken" && !e.newValue) {
+        setAuthCleared(true);
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, [isConnected, user]);
 
   // Computed states
   const isWalletConnected = isConnected;
   const isAuthenticated = !!user && isConnected;
 
+  // Show sign in when:
+  // 1. Wallet is connected but no user in store
+  // 2. Profile is not loading
+  // 3. Either profile was fetched (but returned no user), profile errored, or auth was cleared (401)
   const showSignIn =
-    isConnected && !user && !isLoadingProfile && (isFetched || isProfileError);
+    isConnected && !user && !isLoadingProfile && (isFetched || isProfileError || authCleared);
 
   // Combined loading state
   const isLoading =
@@ -202,7 +241,8 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
           updateBalance(userData.wallet.balance);
         }
 
-        // Invalidate user profile query to sync state
+        // Reset auth cleared flag and invalidate queries
+        setAuthCleared(false);
         queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
 
         toast.success("Successfully signed in!");

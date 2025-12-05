@@ -3,7 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "../lib/api";
 import {
-  Wallet,
   Transaction,
   DepositRequest,
   WithdrawalRequest,
@@ -13,8 +12,6 @@ import {
 
 // Wallet API functions
 export const walletApi = {
-  getWallet: () => apiClient.get<Wallet>("/api/v1/wallet"),
-
   getBalance: () =>
     apiClient.get<{
       availableBalance: number;
@@ -24,17 +21,10 @@ export const walletApi = {
     }>("/api/v1/wallet/balance"),
 
   deposit: (data: DepositRequest) =>
-    apiClient.post<{
-      metadata: {
-        paymentLink: string;
-      };
-    }>("/api/v1/wallet/deposit", data),
+    apiClient.post<Transaction>("/api/v1/wallet/deposit", data),
 
   withdraw: (data: WithdrawalRequest) =>
-    apiClient.post<{
-      withdrawalId: string;
-      status: string;
-    }>("/api/v1/wallet/withdraw", data),
+    apiClient.post<Transaction>("/api/v1/wallet/withdraw", data),
 
   calculateWithdrawal: (amount: number) =>
     apiClient.post<{
@@ -68,19 +58,9 @@ export const walletApi = {
 
   getTransactionById: (id: string) =>
     apiClient.get<Transaction>(`/api/v1/wallet/transactions/${id}`),
-
-  verifyPayment: (reference: string) =>
-    apiClient.post<Transaction>(`/api/v1/wallet/verify/${reference}`),
 };
 
 // Wallet hooks
-export const useWallet = () => {
-  return useQuery({
-    queryKey: ["wallet"],
-    queryFn: walletApi.getWallet,
-  });
-};
-
 export const useWalletBalance = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["wallet", "balance"],
@@ -97,6 +77,7 @@ export const useDeposit = () => {
     mutationFn: walletApi.deposit,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallet"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
 };
@@ -137,17 +118,5 @@ export const useTransactionById = (id: string) => {
     queryKey: ["transactions", id],
     queryFn: () => walletApi.getTransactionById(id),
     enabled: !!id,
-  });
-};
-
-export const useVerifyPayment = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: walletApi.verifyPayment,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["wallet"] });
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-    },
   });
 };

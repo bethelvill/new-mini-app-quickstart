@@ -1,30 +1,29 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   useAdminDashboardStats,
   useAdminRevenueStats,
   useAdminUserStats,
-} from '@/lib/admin';
+} from "@/lib/admin";
 import {
   Activity,
-  ArrowDownRight,
   ArrowUpRight,
   BarChart3,
   Calendar,
   Crown,
   DollarSign,
-  Shield,
-  Sparkles,
+  Plus,
   TrendingUp,
   Users,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
+} from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -36,54 +35,41 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts';
+} from "recharts";
 
 export default function AdminDashboardPage() {
-  const {
-    data: statsData,
-    isLoading,
-    isError,
-    error,
-  } = useAdminDashboardStats();
+  const { data: statsData, isLoading, isError, error } = useAdminDashboardStats();
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
-    start: '2025-08-01',
-    end: '', // Will be set in useEffect to avoid hydration issues
+    start: "2025-08-01",
+    end: "",
   });
-  
-  // Set current date on client side to avoid hydration issues
-  useEffect(() => {
-    const currentDate = new Date().toISOString().split('T')[0];
-    setDateRange(prev => ({ ...prev, end: currentDate }));
-  }, []);
-  const { data: revenueData } = useAdminRevenueStats(
-    dateRange.start,
-    dateRange.end
-  );
-  const { data: userStatsData } = useAdminUserStats(
-    dateRange.start,
-    dateRange.end
-  );
 
-  if (isLoading)
+  useEffect(() => {
+    const currentDate = new Date().toISOString().split("T")[0];
+    setDateRange((prev) => ({ ...prev, end: currentDate }));
+  }, []);
+
+  const { data: revenueData } = useAdminRevenueStats(dateRange.start, dateRange.end);
+  const { data: userStatsData } = useAdminUserStats(dateRange.start, dateRange.end);
+
+  if (isLoading) {
     return (
-      <div className='min-h-screen bg-black flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400 mb-4'></div>
-          <p className='text-gray-400'>Loading admin dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-violet-400" />
       </div>
     );
-  if (isError)
+  }
+
+  if (isError) {
     return (
-      <div className='min-h-screen bg-black flex items-center justify-center'>
-        <div className='text-center'>
-          <p className='text-red-400 text-lg mb-4'>
-            Error: {error?.message || 'Failed to load dashboard.'}
-          </p>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center">
+          <p className="text-red-400 mb-4">Error: {error?.message || "Failed to load"}</p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
     );
+  }
 
   const stats = statsData?.data;
   const revenueStats = revenueData?.data;
@@ -91,568 +77,241 @@ export default function AdminDashboardPage() {
 
   const quickStats = [
     {
-      title: 'Total Users',
-      value: stats?.users?.total?.toLocaleString() ?? '-',
+      title: "Total Users",
+      value: stats?.users?.total?.toLocaleString() ?? "-",
       icon: Users,
-      gradient: 'from-blue-500 to-cyan-500',
       change: `${stats?.users?.activeToday || 0} active today`,
-      isPositive: true,
     },
     {
-      title: 'Total Revenue',
-      value: `₦${stats?.revenue?.total?.toLocaleString() ?? '-'}`,
+      title: "Total Revenue",
+      value: stats?.revenue?.total?.toLocaleString() ?? "-",
       icon: DollarSign,
-      gradient: 'from-emerald-500 to-teal-500',
-      change: `₦${
-        stats?.revenue?.pendingWithdrawals?.toLocaleString() || 0
-      } pending`,
-      isPositive: true,
+      change: `${stats?.revenue?.pendingWithdrawals?.toLocaleString() || 0} pending`,
+      isUsdc: true,
     },
     {
-      title: 'Total Polls',
-      value: stats?.polls?.total?.toLocaleString() ?? '-',
+      title: "Total Polls",
+      value: stats?.polls?.total?.toLocaleString() ?? "-",
       icon: BarChart3,
-      gradient: 'from-violet-500 to-purple-500',
       change: `${stats?.polls?.active || 0} active`,
-      isPositive: true,
     },
   ];
 
   return (
-    <div className='min-h-screen bg-black'>
-      {/* Animated Background */}
-      <div className='fixed inset-0 bg-gradient-to-br from-violet-950/20 via-black to-pink-950/20' />
-      <div className='fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent' />
+    <div className="min-h-screen bg-black">
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px]" />
+      </div>
 
-      <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        {/* Hero Section */}
-        <div className='mb-10'>
-          <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600/10 via-purple-600/5 to-pink-600/10 border border-white/10 p-8 lg:p-12'>
-            {/* Animated elements */}
-            <div className='absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-500/20 to-pink-500/20 rounded-full blur-3xl' />
-            <div className='absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-orange-500/20 to-amber-500/20 rounded-full blur-3xl' />
-
-            <div className='relative z-10'>
-              <div className='flex items-center gap-2 mb-4'>
-                <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30'>
-                  <Shield className='w-4 h-4 text-purple-400' />
-                  <span className='text-sm font-medium text-purple-400'>
-                    Admin Control Center
-                  </span>
-                </div>
-                <Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30'>
-                  <Crown className='w-3 h-3 mr-1' />
-                  Super Admin
-                </Badge>
-              </div>
-
-              <h1 className='text-3xl sm:text-4xl lg:text-5xl font-black mb-2 sm:mb-3'>
-                <span className='bg-gradient-to-r from-violet-400 via-pink-400 to-orange-400 bg-clip-text text-transparent'>
-                  Admin Dashboard
-                </span>
-              </h1>
-
-              <p className='text-lg sm:text-xl text-gray-400 mb-6 sm:mb-8 max-w-2xl'>
-                Monitor platform performance and manage the ShowStakr ecosystem
-              </p>
-
-              <div className='flex flex-wrap gap-4'>
-                <Link href='/admin/create'>
-                  <Button className='group relative px-8 py-6 rounded-2xl bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white font-bold text-lg shadow-2xl shadow-purple-500/25 transform hover:scale-105 transition-all'>
-                    <Sparkles className='w-5 h-5 mr-2' />
-                    Create Poll
-                  </Button>
-                </Link>
-                <Link href='/admin/polls'>
-                  <Button
-                    variant='outline'
-                    className='px-8 py-6 rounded-2xl border-white/20 text-white hover:bg-white/10 font-semibold text-lg'
-                  >
-                    <Activity className='w-5 h-5 mr-2' />
-                    Manage Polls
-                  </Button>
-                </Link>
-              </div>
+      <div className="relative px-4 sm:px-6 py-6 max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30 text-xs">
+                <Crown className="w-3 h-3 mr-1" />
+                Admin
+              </Badge>
             </div>
+            <h1 className="text-2xl font-black text-white">Dashboard</h1>
+            <p className="text-gray-500 text-sm">Platform overview</p>
           </div>
+          <Link href="/admin/create">
+            <Button
+              size="sm"
+              className="bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl h-10 px-4"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Create
+            </Button>
+          </Link>
         </div>
 
         {/* Quick Stats */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8 lg:mb-10'>
-          {quickStats.map((stat, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          {quickStats.map((stat: any, index) => (
             <div
               key={index}
-              className='group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 p-4 sm:p-5 lg:p-6 hover:bg-white/10 transition-all'
+              className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06]"
             >
-              <div
-                className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${stat.gradient} opacity-10 rounded-full blur-2xl group-hover:opacity-20 transition-opacity`}
-              />
-
-              <div className='relative'>
-                <div className='flex items-center justify-between mb-4'>
-                  <div
-                    className={`p-2 rounded-xl bg-gradient-to-r ${stat.gradient} bg-opacity-20`}
-                  >
-                    <stat.icon className='w-5 h-5 text-white' />
-                  </div>
-                  <span
-                    className={`text-xs font-medium flex items-center gap-1 ${
-                      stat.isPositive ? 'text-emerald-400' : 'text-red-400'
-                    }`}
-                  >
-                    {stat.isPositive ? (
-                      <ArrowUpRight className='w-3 h-3' />
-                    ) : (
-                      <ArrowDownRight className='w-3 h-3' />
-                    )}
-                    {stat.change}
-                  </span>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-xl bg-violet-500/10">
+                  <stat.icon className="w-4 h-4 text-violet-400" />
                 </div>
-                <p className='text-gray-400 text-xs sm:text-sm mb-1'>
-                  {stat.title}
-                </p>
-                <p className='text-xl sm:text-2xl font-bold text-white'>
-                  {stat.value}
-                </p>
+                <span className="text-xs text-emerald-400 flex items-center gap-1">
+                  <ArrowUpRight className="w-3 h-3" />
+                  {stat.isUsdc && <Image src="/usdc.svg" alt="USDC" width={10} height={10} />}
+                  {stat.change}
+                </span>
               </div>
+              <p className="text-xs text-gray-500 mb-1">{stat.title}</p>
+              <p className="text-xl font-bold text-white inline-flex items-center gap-1">
+                {stat.isUsdc && <Image src="/usdc.svg" alt="USDC" width={16} height={16} />}
+                {stat.value}
+              </p>
             </div>
           ))}
         </div>
 
-        {/* Date Range Filter */}
-        <div className='mb-8'>
-          <Card className='bg-white/5 backdrop-blur-sm border-white/10'>
-            <CardHeader>
-              <CardTitle className='text-white flex items-center gap-2'>
-                <Calendar className='w-5 h-5 text-violet-400' />
-                Analytics by Date Range
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6'>
-                <div className='space-y-2'>
-                  <Label className='text-gray-300'>Start Date</Label>
-                  <div className='relative'>
-                    <Input
-                      type='date'
-                      value={dateRange.start}
-                      onChange={(e) =>
-                        setDateRange((r) => ({ ...r, start: e.target.value }))
-                      }
-                      max={dateRange.end || undefined}
-                      className='bg-black/50 border-white/20 text-white rounded-xl focus:border-violet-500 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer'
-                    />
-                  </div>
-                </div>
-                <div className='space-y-2'>
-                  <Label className='text-gray-300'>End Date</Label>
-                  <div className='relative'>
-                    <Input
-                      type='date'
-                      value={dateRange.end}
-                      onChange={(e) =>
-                        setDateRange((r) => ({ ...r, end: e.target.value }))
-                      }
-                      min={dateRange.start}
-                      max={dateRange.end || undefined}
-                      className='bg-black/50 border-white/20 text-white rounded-xl focus:border-violet-500 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:hover:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer'
-                    />
-                  </div>
-                </div>
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {[
+            { href: "/admin/users", icon: Users, label: "Users", color: "text-blue-400" },
+            { href: "/admin/transactions", icon: DollarSign, label: "Transactions", color: "text-emerald-400" },
+            { href: "/admin/polls", icon: BarChart3, label: "Polls", color: "text-violet-400" },
+            { href: "/admin/settings", icon: Activity, label: "Settings", color: "text-indigo-400" },
+          ].map((item) => (
+            <Link key={item.href} href={item.href}>
+              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:bg-violet-500/10 hover:border-violet-500/20 transition-all text-center">
+                <item.icon className={`w-5 h-5 ${item.color} mx-auto mb-2`} />
+                <p className="text-sm font-medium text-white">{item.label}</p>
               </div>
-              
-              {/* Quick Actions */}
-              <div className='flex gap-2 mb-6'>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  onClick={() => setDateRange({ start: '2025-08-01', end: dateRange.end || '' })}
-                  className='border-white/20 hover:bg-white/10'
-                >
-                  Reset to Default
-                </Button>
+            </Link>
+          ))}
+        </div>
+
+        {/* Analytics */}
+        <Card className="bg-white/[0.03] border-white/[0.06] mb-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center gap-2 text-base">
+              <Calendar className="w-4 h-4 text-violet-400" />
+              Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Date Range */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400">Start</Label>
+                <Input
+                  type="date"
+                  value={dateRange.start}
+                  onChange={(e) => setDateRange((r) => ({ ...r, start: e.target.value }))}
+                  max={dateRange.end || undefined}
+                  className="h-9 text-sm bg-white/[0.03] border-white/[0.06] text-white rounded-xl [&::-webkit-calendar-picker-indicator]:invert"
+                />
               </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-gray-400">End</Label>
+                <Input
+                  type="date"
+                  value={dateRange.end}
+                  onChange={(e) => setDateRange((r) => ({ ...r, end: e.target.value }))}
+                  min={dateRange.start}
+                  className="h-9 text-sm bg-white/[0.03] border-white/[0.06] text-white rounded-xl [&::-webkit-calendar-picker-indicator]:invert"
+                />
+              </div>
+            </div>
 
-              {/* Charts Grid */}
-              <div className='grid grid-cols-1 gap-6'>
-                {/* User Activity Chart */}
-                <div className='space-y-4'>
-                  <div className='flex items-center gap-2'>
-                    <Users className='w-5 h-5 text-blue-400' />
-                    <h3 className='text-lg font-semibold text-white'>
-                      User Activity Trends
-                    </h3>
-                  </div>
-                  <div className='bg-black/30 rounded-xl p-4'>
-                    {userStats &&
-                    (Array.isArray(userStats)
-                      ? userStats
-                      : userStats?.dailyUsers
-                    )?.length > 0 ? (
-                      <ResponsiveContainer width='100%' height={300}>
-                        <AreaChart
-                          data={
-                            Array.isArray(userStats)
-                              ? userStats
-                              : userStats?.dailyUsers
-                          }
-                          margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
-                        >
-                          <defs>
-                            <linearGradient
-                              id='colorNew'
-                              x1='0'
-                              y1='0'
-                              x2='0'
-                              y2='1'
-                            >
-                              <stop
-                                offset='5%'
-                                stopColor='#3b82f6'
-                                stopOpacity={0.8}
-                              />
-                              <stop
-                                offset='95%'
-                                stopColor='#3b82f6'
-                                stopOpacity={0}
-                              />
-                            </linearGradient>
-                            <linearGradient
-                              id='colorActive'
-                              x1='0'
-                              y1='0'
-                              x2='0'
-                              y2='1'
-                            >
-                              <stop
-                                offset='5%'
-                                stopColor='#10b981'
-                                stopOpacity={0.8}
-                              />
-                              <stop
-                                offset='95%'
-                                stopColor='#10b981'
-                                stopOpacity={0}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid
-                            strokeDasharray='3 3'
-                            stroke='#374151'
-                          />
-                          <XAxis
-                            dataKey='date'
-                            stroke='#9ca3af'
-                            tick={{ fill: '#9ca3af', fontSize: 12 }}
-                            angle={-45}
-                            textAnchor='end'
-                            height={60}
-                          />
-                          <YAxis
-                            stroke='#9ca3af'
-                            tick={{ fill: '#9ca3af', fontSize: 12 }}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                              border: '1px solid #374151',
-                              borderRadius: '8px',
-                            }}
-                            labelStyle={{ color: '#e5e7eb' }}
-                          />
-                          <Legend
-                            wrapperStyle={{ paddingTop: '20px' }}
-                            iconType='circle'
-                          />
-                          <Area
-                            type='monotone'
-                            dataKey='newUsers'
-                            stroke='#3b82f6'
-                            fillOpacity={1}
-                            fill='url(#colorNew)'
-                            name='New Users'
-                            strokeWidth={2}
-                          />
-                          <Area
-                            type='monotone'
-                            dataKey='activeUsers'
-                            stroke='#10b981'
-                            fillOpacity={1}
-                            fill='url(#colorActive)'
-                            name='Active Users'
-                            strokeWidth={2}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className='flex items-center justify-center h-[300px] text-gray-500'>
-                        <div className='text-center'>
-                          <BarChart3 className='w-12 h-12 mx-auto mb-2 opacity-50' />
-                          <p>No user data available</p>
-                          <p className='text-sm mt-1'>
-                            Select a date range to view analytics
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Revenue Chart */}
-                <div className='space-y-4'>
-                  <div className='flex items-center gap-2'>
-                    <TrendingUp className='w-5 h-5 text-emerald-400' />
-                    <h3 className='text-lg font-semibold text-white'>
-                      Revenue Analytics
-                    </h3>
-                  </div>
-                  <div className='bg-black/30 rounded-xl p-4'>
-                    {revenueStats?.dailyRevenue && revenueStats.dailyRevenue.length > 0 ? (
-                      <ResponsiveContainer width='100%' height={300}>
-                        <BarChart
-                          data={revenueStats?.dailyRevenue}
-                          margin={{ top: 10, right: 30, left: 0, bottom: 40 }}
-                        >
-                          <defs>
-                            <linearGradient
-                              id='colorRevenue'
-                              x1='0'
-                              y1='0'
-                              x2='0'
-                              y2='1'
-                            >
-                              <stop
-                                offset='5%'
-                                stopColor='#10b981'
-                                stopOpacity={0.8}
-                              />
-                              <stop
-                                offset='95%'
-                                stopColor='#10b981'
-                                stopOpacity={0.4}
-                              />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid
-                            strokeDasharray='3 3'
-                            stroke='#374151'
-                          />
-                          <XAxis
-                            dataKey='date'
-                            stroke='#9ca3af'
-                            tick={{ fill: '#9ca3af', fontSize: 12 }}
-                            angle={-45}
-                            textAnchor='end'
-                            height={60}
-                          />
-                          <YAxis
-                            stroke='#9ca3af'
-                            tick={{ fill: '#9ca3af', fontSize: 12 }}
-                            tickFormatter={(value) =>
-                              `₦${(value / 1000).toFixed(0)}k`
-                            }
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                              border: '1px solid #374151',
-                              borderRadius: '8px',
-                            }}
-                            labelStyle={{ color: '#e5e7eb' }}
-                            formatter={(value: any) =>
-                              `₦${value.toLocaleString()}`
-                            }
-                          />
-                          <Bar
-                            dataKey='revenue'
-                            fill='url(#colorRevenue)'
-                            radius={[8, 8, 0, 0]}
-                            name='Revenue'
-                          />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className='flex items-center justify-center h-[300px] text-gray-500'>
-                        <div className='text-center'>
-                          <DollarSign className='w-12 h-12 mx-auto mb-2 opacity-50' />
-                          <p>No revenue data available</p>
-                          <p className='text-sm mt-1'>
-                            Revenue analytics will appear here
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Combined Overview (Optional) */}
-                {(((Array.isArray(userStats) && userStats.length > 0) ||
-                  (userStats?.dailyUsers && userStats.dailyUsers.length > 0)) ||
-                  (revenueStats?.dailyRevenue && revenueStats.dailyRevenue.length > 0)) && (
-                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6'>
-                    {/* Summary Stats */}
-                    <div className='bg-black/30 rounded-xl p-4'>
-                      <h4 className='text-white font-semibold mb-3'>
-                        Quick Stats
-                      </h4>
-                      <div className='space-y-2'>
-                        {((Array.isArray(userStats) && userStats.length > 0) ||
-                          (userStats?.dailyUsers && userStats.dailyUsers.length > 0)) && (
-                          <>
-                            <div className='flex justify-between items-center'>
-                              <span className='text-gray-400'>
-                                Total New Users
-                              </span>
-                              <span className='text-blue-400 font-bold'>
-                                {(Array.isArray(userStats)
-                                  ? userStats
-                                  : userStats?.dailyUsers
-                                )?.reduce(
-                                  (sum: number, d: any) =>
-                                    sum + (d.newUsers || 0),
-                                  0
-                                )}
-                              </span>
-                            </div>
-                            <div className='flex justify-between items-center'>
-                              <span className='text-gray-400'>
-                                Avg Active Users
-                              </span>
-                              <span className='text-emerald-400 font-bold'>
-                                {Math.round(
-                                  (Array.isArray(userStats)
-                                    ? userStats
-                                    : userStats?.dailyUsers
-                                  )?.reduce(
-                                    (sum: number, d: any) =>
-                                      sum + (d.activeUsers || 0),
-                                    0
-                                  ) /
-                                    ((Array.isArray(userStats)
-                                      ? userStats
-                                      : userStats?.dailyUsers
-                                    )?.length || 1)
-                                )}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                        {revenueStats?.dailyRevenue && revenueStats.dailyRevenue.length > 0 && (
-                          <>
-                            <div className='flex justify-between items-center'>
-                              <span className='text-gray-400'>
-                                Total Revenue
-                              </span>
-                              <span className='text-emerald-400 font-bold'>
-                                ₦
-                                {revenueStats?.dailyRevenue
-                                  ?.reduce(
-                                    (sum: number, d: any) =>
-                                      sum + (d.revenue || 0),
-                                    0
-                                  )
-                                  .toLocaleString()}
-                              </span>
-                            </div>
-                            <div className='flex justify-between items-center'>
-                              <span className='text-gray-400'>
-                                Avg Daily Revenue
-                              </span>
-                              <span className='text-amber-400 font-bold'>
-                                ₦
-                                {Math.round(
-                                  (revenueStats?.dailyRevenue?.reduce(
-                                    (sum: number, d: any) =>
-                                      sum + (d.revenue || 0),
-                                    0
-                                  ) || 0) / (revenueStats?.dailyRevenue?.length || 1)
-                                ).toLocaleString()}
-                              </span>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Data Table */}
-                    <div className='bg-black/30 rounded-xl p-4'>
-                      <h4 className='text-white font-semibold mb-3'>
-                        Recent Activity
-                      </h4>
-                      <div className='space-y-1 max-h-32 overflow-y-auto'>
-                        {(Array.isArray(userStats)
-                          ? userStats
-                          : userStats?.dailyUsers
-                        )
-                          ?.slice(-5)
-                          ?.reverse()
-                          ?.map((d: any) => (
-                            <div
-                              key={d.date}
-                              className='flex justify-between text-sm'
-                            >
-                              <span className='text-gray-400'>{d.date}</span>
-                              <div className='flex gap-4'>
-                                <span className='text-blue-400'>
-                                  +{d.newUsers} new
-                                </span>
-                                <span className='text-emerald-400'>
-                                  {d.activeUsers} active
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
+            {/* User Activity Chart */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-400" />
+                <h3 className="text-sm font-medium text-white">User Activity</h3>
+              </div>
+              <div className="bg-black/30 rounded-xl p-3">
+                {userStats && (Array.isArray(userStats) ? userStats : userStats?.dailyUsers)?.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart
+                      data={Array.isArray(userStats) ? userStats : userStats?.dailyUsers}
+                      margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorNew" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" stroke="#6b7280" tick={{ fill: "#6b7280", fontSize: 10 }} />
+                      <YAxis stroke="#6b7280" tick={{ fill: "#6b7280", fontSize: 10 }} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "8px" }}
+                        labelStyle={{ color: "#e5e7eb" }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: "12px" }} />
+                      <Area type="monotone" dataKey="newUsers" stroke="#8b5cf6" fill="url(#colorNew)" name="New" strokeWidth={2} />
+                      <Area type="monotone" dataKey="activeUsers" stroke="#6366f1" fill="url(#colorActive)" name="Active" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[200px] text-gray-500 text-sm">
+                    No user data available
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
 
-        {/* Quick Actions */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
-          <Link href='/admin/users'>
-            <Card className='group bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all cursor-pointer'>
-              <CardContent className='p-6 text-center'>
-                <Users className='w-8 h-8 text-blue-400 mx-auto mb-3' />
-                <h3 className='font-semibold text-white mb-1'>Manage Users</h3>
-                <p className='text-gray-400 text-sm'>User administration</p>
-              </CardContent>
-            </Card>
-          </Link>
+            {/* Revenue Chart */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-medium text-white">Revenue</h3>
+              </div>
+              <div className="bg-black/30 rounded-xl p-3">
+                {revenueStats?.dailyRevenue && revenueStats.dailyRevenue.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <BarChart
+                      data={revenueStats?.dailyRevenue}
+                      margin={{ top: 5, right: 5, left: -20, bottom: 5 }}
+                    >
+                      <defs>
+                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#6366f1" stopOpacity={0.4} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                      <XAxis dataKey="date" stroke="#6b7280" tick={{ fill: "#6b7280", fontSize: 10 }} />
+                      <YAxis stroke="#6b7280" tick={{ fill: "#6b7280", fontSize: 10 }} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#1f2937", border: "1px solid #374151", borderRadius: "8px" }}
+                        labelStyle={{ color: "#e5e7eb" }}
+                        formatter={(value: any) => `$${value.toLocaleString()}`}
+                      />
+                      <Bar dataKey="revenue" fill="url(#colorRevenue)" radius={[4, 4, 0, 0]} name="Revenue" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[200px] text-gray-500 text-sm">
+                    No revenue data available
+                  </div>
+                )}
+              </div>
+            </div>
 
-          <Link href='/admin/transactions'>
-            <Card className='group bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all cursor-pointer'>
-              <CardContent className='p-6 text-center'>
-                <DollarSign className='w-8 h-8 text-emerald-400 mx-auto mb-3' />
-                <h3 className='font-semibold text-white mb-1'>Transactions</h3>
-                <p className='text-gray-400 text-sm'>Financial overview</p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href='/admin/polls'>
-            <Card className='group bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all cursor-pointer'>
-              <CardContent className='p-6 text-center'>
-                <BarChart3 className='w-8 h-8 text-violet-400 mx-auto mb-3' />
-                <h3 className='font-semibold text-white mb-1'>Poll Manager</h3>
-                <p className='text-gray-400 text-sm'>Manage all polls</p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href='/admin/create'>
-            <Card className='group bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 transition-all cursor-pointer'>
-              <CardContent className='p-6 text-center'>
-                <Sparkles className='w-8 h-8 text-pink-400 mx-auto mb-3' />
-                <h3 className='font-semibold text-white mb-1'>Create Poll</h3>
-                <p className='text-gray-400 text-sm'>Add new predictions</p>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
+            {/* Summary Stats */}
+            {(userStats || revenueStats?.dailyRevenue) && (
+              <div className="grid grid-cols-2 gap-3">
+                {userStats && (
+                  <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/20">
+                    <p className="text-xs text-gray-400 mb-1">Total New Users</p>
+                    <p className="text-lg font-bold text-violet-400">
+                      {(Array.isArray(userStats) ? userStats : userStats?.dailyUsers)?.reduce(
+                        (sum: number, d: any) => sum + (d.newUsers || 0),
+                        0
+                      )}
+                    </p>
+                  </div>
+                )}
+                {revenueStats?.dailyRevenue && revenueStats.dailyRevenue.length > 0 && (
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                    <p className="text-xs text-gray-400 mb-1">Total Revenue</p>
+                    <p className="text-lg font-bold text-emerald-400 inline-flex items-center gap-1">
+                      <Image src="/usdc.svg" alt="USDC" width={14} height={14} />
+                      {revenueStats.dailyRevenue.reduce((sum: number, d: any) => sum + (d.revenue || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

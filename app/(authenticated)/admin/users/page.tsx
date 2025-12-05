@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   useAdminUsers,
@@ -6,12 +6,12 @@ import {
   useUpdateUserRole,
   useLockUserWallet,
   useUnlockUserWallet,
-} from '@/lib/admin';
-import { capitalize } from '@/lib/capitalize';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "@/lib/admin";
+import { capitalize } from "@/lib/capitalize";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,14 +27,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useState, useMemo } from 'react';
-import { Pagination } from '@/components/ui/pagination';
-import { useAuthStore } from '@/stores/authStore';
-import { toast } from 'sonner';
+} from "@/components/ui/dropdown-menu";
+import { useState } from "react";
+import { Pagination } from "@/components/ui/pagination";
+import { useAuthStore } from "@/stores/authStore";
+import { toast } from "sonner";
 import {
   Users,
-  Shield,
   Crown,
   UserCheck,
   UserX,
@@ -42,7 +41,6 @@ import {
   Unlock,
   Mail,
   Search,
-  Filter,
   AlertTriangle,
   Calendar,
   Wallet,
@@ -51,33 +49,26 @@ import {
   ChevronDown,
   User,
   MoreVertical,
-} from 'lucide-react';
-import Link from 'next/link';
+  Loader2,
+} from "lucide-react";
 
 export default function AdminUsersPage() {
   const { isAdmin } = useAuthStore();
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'suspended'>('all');
-  const [isEmailVerifiedFilter, setIsEmailVerifiedFilter] = useState<boolean | undefined>(undefined);
-  const [isPhoneVerifiedFilter, setIsPhoneVerifiedFilter] = useState<boolean | undefined>(undefined);
-  const [kycCompletedFilter, setKycCompletedFilter] = useState<boolean | undefined>(undefined);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "suspended">("all");
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [selectedUserForRole, setSelectedUserForRole] = useState<any>(null);
-  const [selectedRole, setSelectedRole] = useState<string>('');
-  
-  // Build API parameters
+  const [selectedRole, setSelectedRole] = useState<string>("");
+
   const apiParams = {
     page: currentPage,
     limit: itemsPerPage,
     search: searchTerm || undefined,
-    status: filterStatus === 'all' ? undefined : filterStatus,
-    isEmailVerified: isEmailVerifiedFilter,
-    isPhoneVerified: isPhoneVerifiedFilter,
-    kycCompleted: kycCompletedFilter,
+    status: filterStatus === "all" ? undefined : filterStatus,
   };
-  
+
   const { data, isLoading, isError, error } = useAdminUsers(apiParams);
   const updateUserStatus = useUpdateUserStatus();
   const updateUserRole = useUpdateUserRole();
@@ -87,29 +78,26 @@ export default function AdminUsersPage() {
 
   const handleUpdateUserRole = () => {
     if (!selectedUserForRole || !selectedRole) return;
-    
+
     updateUserRole.mutate(
       { id: selectedUserForRole.id, role: selectedRole },
       {
         onSuccess: () => {
-          const roleLabel = selectedRole === 'admin' ? 'Admin' : 
-                           selectedRole === 'sub_admin' ? 'Sub-Admin' : 'User';
-          toast.success(`${selectedUserForRole.firstName} is now ${roleLabel === 'User' ? 'a' : 'an'} ${roleLabel}!`);
+          const roleLabel = selectedRole === "admin" ? "Admin" : selectedRole === "sub_admin" ? "Sub-Admin" : "User";
+          toast.success(`Role updated to ${roleLabel}`);
           setRoleDialogOpen(false);
           setSelectedUserForRole(null);
-          setSelectedRole('');
+          setSelectedRole("");
         },
-        onError: (error: any) => {
-          toast.error(error?.message || 'Failed to update user role');
-        },
+        onError: (error: any) => toast.error(error?.message || "Failed to update role"),
       }
     );
   };
-  
+
   const getUserCurrentRole = (user: any) => {
-    if (user.roles?.includes('admin')) return 'admin';
-    if (user.roles?.includes('sub_admin')) return 'sub_admin';
-    return 'user';
+    if (user.roles?.includes("admin")) return "admin";
+    if (user.roles?.includes("sub_admin")) return "sub_admin";
+    return "user";
   };
 
   const responseData = data?.data;
@@ -119,645 +107,290 @@ export default function AdminUsersPage() {
   const hasPrevPage = responseData?.hasPrevPage || false;
   const totalDocs = responseData?.totalDocs || 0;
 
-  // Users are now filtered on the server, so we use them directly
-  const filteredUsers = users;
   if (isLoading) {
     return (
-      <div className='min-h-screen bg-black flex items-center justify-center'>
-        <div className='text-center'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400 mb-4'></div>
-          <p className='text-gray-400'>Loading users...</p>
-        </div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className='min-h-screen bg-black flex items-center justify-center'>
-        <div className='text-center'>
-          <AlertTriangle className='w-12 h-12 text-red-400 mx-auto mb-4' />
-          <p className='text-red-400 text-lg mb-4'>
-            Error: {error?.message || 'Failed to load users'}
-          </p>
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center">
+          <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <p className="text-red-400 mb-4">{error?.message || "Failed to load users"}</p>
           <Button onClick={() => window.location.reload()}>Try Again</Button>
         </div>
       </div>
     );
   }
 
-  // Get user stats
-  const totalUsers = users.length;
-  const activeUsers = users.filter((u: any) => u.status === 'active').length;
-  const suspendedUsers = users.filter((u: any) => u.status === 'suspended').length;
-  const lockedWallets = users.filter((u: any) => u.wallet.isLocked).length;
+  const activeUsers = users.filter((u: any) => u.status === "active").length;
+  const suspendedUsers = users.filter((u: any) => u.status === "suspended").length;
+  const lockedWallets = users.filter((u: any) => u.wallet?.isLocked).length;
 
   return (
-    <div className='min-h-screen bg-black'>
-      {/* Animated Background */}
-      <div className='fixed inset-0 bg-gradient-to-br from-violet-950/20 via-black to-pink-950/20' />
-      <div className='fixed inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-900/10 via-transparent to-transparent' />
+    <div className="min-h-screen bg-black">
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px]" />
+      </div>
 
-      <div className='relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8'>
-        {/* Hero Section */}
-        <div className='mb-10'>
-          <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-600/10 via-purple-600/5 to-pink-600/10 border border-white/10 p-8 lg:p-12'>
-            {/* Animated elements */}
-            <div className='absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-violet-500/20 to-pink-500/20 rounded-full blur-3xl' />
-            <div className='absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-orange-500/20 to-amber-500/20 rounded-full blur-3xl' />
-
-            <div className='relative z-10'>
-              <div className='flex items-center gap-2 mb-4'>
-                <div className='flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30'>
-                  <Users className='w-4 h-4 text-blue-400' />
-                  <span className='text-sm font-medium text-blue-400'>
-                    User Management
-                  </span>
-                </div>
-                <Badge className='bg-amber-500/20 text-amber-400 border-amber-500/30'>
-                  <Crown className='w-3 h-3 mr-1' />
-                  Admin Panel
-                </Badge>
-              </div>
-
-              <h1 className='text-3xl sm:text-4xl lg:text-5xl font-black mb-2 sm:mb-3'>
-                <span className='bg-gradient-to-r from-violet-400 via-pink-400 to-orange-400 bg-clip-text text-transparent'>
-                  Manage Users
-                </span>
-              </h1>
-
-              <p className='text-lg sm:text-xl text-gray-400 mb-6 sm:mb-8 max-w-2xl'>
-                Monitor and manage all platform users, their status, and wallet permissions
-              </p>
-
-              <div className='flex flex-wrap gap-4'>
-                <Link href='/admin/dashboard'>
-                  <Button
-                    variant='outline'
-                    className='px-8 py-6 rounded-2xl border-white/20 text-white hover:bg-white/10 font-semibold text-lg'
-                  >
-                    <Shield className='w-5 h-5 mr-2' />
-                    Dashboard
-                  </Button>
-                </Link>
-              </div>
-            </div>
+      <div className="relative px-4 sm:px-6 py-6 max-w-3xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30 text-xs">
+              <Crown className="w-3 h-3 mr-1" />
+              Admin
+            </Badge>
           </div>
+          <h1 className="text-2xl font-black text-white">Users</h1>
+          <p className="text-gray-500 text-sm">Manage platform users</p>
         </div>
 
         {/* Quick Stats */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
-          <Card className='bg-white/5 backdrop-blur-sm border-white/10'>
-            <CardContent className='p-6'>
-              <div className='flex items-center gap-4'>
-                <div className='p-3 rounded-xl bg-gradient-to-r from-blue-500/20 to-cyan-500/20'>
-                  <Users className='w-6 h-6 text-blue-400' />
-                </div>
-                <div>
-                  <p className='text-gray-400 text-sm'>Total Users</p>
-                  <p className='text-2xl font-bold text-white'>{totalUsers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='bg-white/5 backdrop-blur-sm border-white/10'>
-            <CardContent className='p-6'>
-              <div className='flex items-center gap-4'>
-                <div className='p-3 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20'>
-                  <UserCheck className='w-6 h-6 text-emerald-400' />
-                </div>
-                <div>
-                  <p className='text-gray-400 text-sm'>Active Users</p>
-                  <p className='text-2xl font-bold text-white'>{activeUsers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='bg-white/5 backdrop-blur-sm border-white/10'>
-            <CardContent className='p-6'>
-              <div className='flex items-center gap-4'>
-                <div className='p-3 rounded-xl bg-gradient-to-r from-red-500/20 to-pink-500/20'>
-                  <UserX className='w-6 h-6 text-red-400' />
-                </div>
-                <div>
-                  <p className='text-gray-400 text-sm'>Suspended</p>
-                  <p className='text-2xl font-bold text-white'>{suspendedUsers}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='bg-white/5 backdrop-blur-sm border-white/10'>
-            <CardContent className='p-6'>
-              <div className='flex items-center gap-4'>
-                <div className='p-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20'>
-                  <Lock className='w-6 h-6 text-amber-400' />
-                </div>
-                <div>
-                  <p className='text-gray-400 text-sm'>Locked Wallets</p>
-                  <p className='text-2xl font-bold text-white'>{lockedWallets}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-4 gap-2 mb-6">
+          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center">
+            <Users className="w-4 h-4 text-violet-400 mx-auto mb-1" />
+            <p className="text-lg font-bold text-white">{users.length}</p>
+            <p className="text-xs text-gray-500">Total</p>
+          </div>
+          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center">
+            <UserCheck className="w-4 h-4 text-emerald-400 mx-auto mb-1" />
+            <p className="text-lg font-bold text-white">{activeUsers}</p>
+            <p className="text-xs text-gray-500">Active</p>
+          </div>
+          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center">
+            <UserX className="w-4 h-4 text-red-400 mx-auto mb-1" />
+            <p className="text-lg font-bold text-white">{suspendedUsers}</p>
+            <p className="text-xs text-gray-500">Suspended</p>
+          </div>
+          <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] text-center">
+            <Lock className="w-4 h-4 text-amber-400 mx-auto mb-1" />
+            <p className="text-lg font-bold text-white">{lockedWallets}</p>
+            <p className="text-xs text-gray-500">Locked</p>
+          </div>
         </div>
 
-        {/* Filters */}
-        <Card className='bg-white/5 backdrop-blur-sm border-white/10 mb-8'>
-          <CardContent className='p-6'>
-            <div className='flex flex-col sm:flex-row gap-4'>
-              <div className='flex-1'>
-                <div className='relative'>
-                  <Search className='w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400' />
-                  <Input
-                    placeholder='Search users by username, email, first or last name...'
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1); // Reset to first page when searching
-                    }}
-                    className='pl-10 bg-black/50 border-white/20 text-white placeholder-gray-400 focus:border-violet-500 rounded-xl'
-                  />
-                </div>
-              </div>
-              <div className='flex flex-wrap gap-2'>
-                {['all', 'active', 'suspended'].map((status) => (
-                  <Button
-                    key={status}
-                    size='sm'
-                    variant={filterStatus === status ? 'default' : 'outline'}
-                    onClick={() => {
-                      setFilterStatus(status as any);
-                      setCurrentPage(1); // Reset to first page when filtering
-                    }}
-                    className={
-                      filterStatus === status
-                        ? 'bg-violet-600 hover:bg-violet-700 text-white'
-                        : 'border-white/20 text-gray-300 hover:bg-white/10'
-                    }
-                  >
-                    <Filter className='w-4 h-4 mr-2' />
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Advanced Filters */}
-        <Card className='bg-white/5 backdrop-blur-sm border-white/10 mb-8'>
-          <CardContent className='p-6'>
-            <div className='mb-4'>
-              <h3 className='text-lg font-semibold text-white mb-4 flex items-center gap-2'>
-                <Filter className='w-5 h-5 text-violet-400' />
-                Advanced Filters
-              </h3>
-              <div className='grid grid-cols-1 sm:grid-cols-3 gap-4'>
-                {/* Email Verification Filter */}
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium text-gray-300'>Email Verified</label>
-                  <div className='flex gap-1'>
-                    <Button
-                      size='sm'
-                      variant={isEmailVerifiedFilter === undefined ? 'default' : 'outline'}
-                      onClick={() => {
-                        setIsEmailVerifiedFilter(undefined);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        isEmailVerifiedFilter === undefined
-                          ? 'bg-violet-600 hover:bg-violet-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      All
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant={isEmailVerifiedFilter === true ? 'default' : 'outline'}
-                      onClick={() => {
-                        setIsEmailVerifiedFilter(true);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        isEmailVerifiedFilter === true
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      Verified
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant={isEmailVerifiedFilter === false ? 'default' : 'outline'}
-                      onClick={() => {
-                        setIsEmailVerifiedFilter(false);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        isEmailVerifiedFilter === false
-                          ? 'bg-red-600 hover:bg-red-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      Unverified
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Phone Verification Filter */}
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium text-gray-300'>Phone Verified</label>
-                  <div className='flex gap-1'>
-                    <Button
-                      size='sm'
-                      variant={isPhoneVerifiedFilter === undefined ? 'default' : 'outline'}
-                      onClick={() => {
-                        setIsPhoneVerifiedFilter(undefined);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        isPhoneVerifiedFilter === undefined
-                          ? 'bg-violet-600 hover:bg-violet-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      All
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant={isPhoneVerifiedFilter === true ? 'default' : 'outline'}
-                      onClick={() => {
-                        setIsPhoneVerifiedFilter(true);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        isPhoneVerifiedFilter === true
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      Verified
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant={isPhoneVerifiedFilter === false ? 'default' : 'outline'}
-                      onClick={() => {
-                        setIsPhoneVerifiedFilter(false);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        isPhoneVerifiedFilter === false
-                          ? 'bg-red-600 hover:bg-red-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      Unverified
-                    </Button>
-                  </div>
-                </div>
-
-                {/* KYC Completion Filter */}
-                <div className='space-y-2'>
-                  <label className='text-sm font-medium text-gray-300'>KYC Completed</label>
-                  <div className='flex gap-1'>
-                    <Button
-                      size='sm'
-                      variant={kycCompletedFilter === undefined ? 'default' : 'outline'}
-                      onClick={() => {
-                        setKycCompletedFilter(undefined);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        kycCompletedFilter === undefined
-                          ? 'bg-violet-600 hover:bg-violet-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      All
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant={kycCompletedFilter === true ? 'default' : 'outline'}
-                      onClick={() => {
-                        setKycCompletedFilter(true);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        kycCompletedFilter === true
-                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      Completed
-                    </Button>
-                    <Button
-                      size='sm'
-                      variant={kycCompletedFilter === false ? 'default' : 'outline'}
-                      onClick={() => {
-                        setKycCompletedFilter(false);
-                        setCurrentPage(1);
-                      }}
-                      className={
-                        kycCompletedFilter === false
-                          ? 'bg-red-600 hover:bg-red-700 text-white text-xs'
-                          : 'border-white/20 text-gray-300 hover:bg-white/10 text-xs'
-                      }
-                    >
-                      Pending
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Search & Filters */}
+        <div className="mb-4 space-y-3">
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Input
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-10 h-11 bg-white/[0.03] border-white/[0.06] text-white placeholder-gray-500 rounded-xl"
+            />
+          </div>
+          <div className="flex gap-2">
+            {["all", "active", "suspended"].map((status) => (
+              <Button
+                key={status}
+                size="sm"
+                onClick={() => {
+                  setFilterStatus(status as any);
+                  setCurrentPage(1);
+                }}
+                className={`h-8 rounded-lg text-xs ${
+                  filterStatus === status
+                    ? "bg-violet-500 hover:bg-violet-600 text-white"
+                    : "bg-white/[0.03] border-white/[0.06] text-gray-400 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </Button>
+            ))}
+          </div>
+        </div>
 
         {/* Users List */}
-        <Card className='bg-white/5 backdrop-blur-sm border-white/10'>
-          <CardHeader>
-            <CardTitle className='text-white flex items-center gap-2'>
-              <Users className='w-5 h-5 text-violet-400' />
-              All Users ({filteredUsers.length})
+        <Card className="bg-white/[0.03] border-white/[0.06]">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-white flex items-center gap-2 text-base">
+              <Users className="w-4 h-4 text-violet-400" />
+              All Users ({users.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {filteredUsers.length === 0 ? (
-              <div className='text-center py-12'>
-                <Users className='w-12 h-12 text-gray-500 mx-auto mb-4' />
-                <h3 className='text-lg font-semibold text-white mb-2'>
-                  {searchTerm || filterStatus !== 'all' ? 'No matching users found' : 'No users found'}
-                </h3>
-                <p className='text-gray-400 mb-6'>
-                  {searchTerm || filterStatus !== 'all' 
-                    ? 'Try adjusting your search or filter criteria'
-                    : 'Users will appear here once they register on the platform'
-                  }
-                </p>
+            {users.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">No users found</p>
               </div>
             ) : (
-              <div className='space-y-4'>
-                {filteredUsers.map((user: any) => (
+              <div className="space-y-3">
+                {users.map((user: any) => (
                   <div
                     key={user.id}
-                    className='group p-6 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-all'
+                    className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-colors"
                   >
-                    <div className='flex items-start justify-between mb-4'>
-                      <div className='flex-1'>
-                        <div className='flex items-center gap-3 mb-3'>
-                          <div className='flex items-center gap-2'>
-                            <h3 className='text-xl font-bold text-white'>
-                              {capitalize(user.firstName)} {capitalize(user.lastName)}
-                            </h3>
-                            <div className='flex items-center gap-1 text-gray-400'>
-                              <Mail className='w-4 h-4' />
-                              <span className='text-sm'>{user.email}</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className='flex flex-wrap items-center gap-2 mb-4'>
-                          {/* Roles */}
-                          {(user.roles || []).map((role: string) => (
-                            <Badge
-                              key={role}
-                              className={
-                                role === 'admin'
-                                  ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                                  : role === 'sub-admin' || role === 'sub_admin'
-                                  ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                                  : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                              }
-                            >
-                              {role === 'admin' && <Crown className='w-3 h-3 mr-1' />}
-                              {(role === 'sub-admin' || role === 'sub_admin') && <Sparkles className='w-3 h-3 mr-1' />}
-                              {(role === 'sub-admin' || role === 'sub_admin') ? 'Sub-Admin' : role}
-                            </Badge>
-                          ))}
-
-                          {/* Status */}
-                          <Badge
-                            className={
-                              user.status === 'active'
-                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                : 'bg-red-500/20 text-red-400 border-red-500/30'
-                            }
-                          >
-                            {user.status === 'active' ? (
-                              <UserCheck className='w-3 h-3 mr-1' />
-                            ) : (
-                              <UserX className='w-3 h-3 mr-1' />
-                            )}
-                            {user.status}
-                          </Badge>
-
-                          {/* Email Verification */}
-                          <Badge
-                            className={
-                              user.isEmailVerified
-                                ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                                : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-                            }
-                          >
-                            <Mail className='w-3 h-3 mr-1' />
-                            {user.isEmailVerified ? 'Email Verified' : 'Email Unverified'}
-                          </Badge>
-
-                          {/* Phone Verification */}
-                          {user.phoneNumber && (
-                            <Badge
-                              className={
-                                user.isPhoneVerified
-                                  ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                                  : 'bg-orange-500/20 text-orange-400 border-orange-500/30'
-                              }
-                            >
-                              <span className='w-3 h-3 mr-1'>📞</span>
-                              {user.isPhoneVerified ? 'Phone Verified' : 'Phone Unverified'}
-                            </Badge>
-                          )}
-
-                          {/* KYC Status */}
-                          <Badge
-                            className={
-                              user.kycCompleted
-                                ? 'bg-green-500/20 text-green-400 border-green-500/30'
-                                : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                            }
-                          >
-                            <CheckCircle className='w-3 h-3 mr-1' />
-                            KYC {user.kycCompleted ? 'Completed' : 'Pending'}
-                          </Badge>
-
-                          {/* Wallet Status */}
-                          <Badge
-                            className={
-                              user.wallet.isLocked
-                                ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                                : 'bg-green-500/20 text-green-400 border-green-500/30'
-                            }
-                          >
-                            {user.wallet.isLocked ? (
-                              <Lock className='w-3 h-3 mr-1' />
-                            ) : (
-                              <Wallet className='w-3 h-3 mr-1' />
-                            )}
-                            Wallet {user.wallet.isLocked ? 'Locked' : 'Active'}
-                          </Badge>
-                        </div>
-
-                        {user.createdAt && (
-                          <div className='flex items-center gap-2 text-xs text-gray-500'>
-                            <Calendar className='w-4 h-4' />
-                            Joined {new Date(user.createdAt).toLocaleDateString()}
-                          </div>
-                        )}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-white font-semibold truncate">
+                          {capitalize(user.firstName)} {capitalize(user.lastName)}
+                        </h3>
+                        <p className="text-gray-500 text-xs truncate">{user.email}</p>
                       </div>
-                    </div>
+                      <div className="flex items-center gap-2">
+                        {/* Role Dropdown */}
+                        {isAdmin && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs border-white/10 text-gray-400"
+                              >
+                                {getUserCurrentRole(user) === "admin" && <Crown className="w-3 h-3 mr-1 text-violet-400" />}
+                                {getUserCurrentRole(user) === "sub_admin" && <Sparkles className="w-3 h-3 mr-1 text-indigo-400" />}
+                                {getUserCurrentRole(user) === "user" && <User className="w-3 h-3 mr-1" />}
+                                <ChevronDown className="w-3 h-3 ml-1" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+                              <DropdownMenuLabel className="text-xs">Change Role</DropdownMenuLabel>
+                              <DropdownMenuSeparator className="bg-white/10" />
+                              {["user", "sub_admin", "admin"].map((role) => (
+                                <DropdownMenuItem
+                                  key={role}
+                                  onClick={() => {
+                                    setSelectedUserForRole(user);
+                                    setSelectedRole(role);
+                                    setRoleDialogOpen(true);
+                                  }}
+                                  disabled={getUserCurrentRole(user) === role}
+                                  className="hover:bg-white/10 cursor-pointer text-xs"
+                                >
+                                  {role === "admin" && <Crown className="w-3 h-3 mr-2 text-violet-400" />}
+                                  {role === "sub_admin" && <Sparkles className="w-3 h-3 mr-2 text-indigo-400" />}
+                                  {role === "user" && <User className="w-3 h-3 mr-2" />}
+                                  {role === "sub_admin" ? "Sub-Admin" : capitalize(role)}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
 
-                    <div className='flex items-center gap-3'>
-                      {/* Role Badge with Dropdown */}
-                      {isAdmin && (
+                        {/* Actions Dropdown */}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              size='sm'
-                              variant='outline'
-                              className='border-white/20 text-white hover:bg-white/10'
-                            >
-                              {getUserCurrentRole(user) === 'admin' && <Crown className='w-4 h-4 mr-2 text-purple-400' />}
-                              {getUserCurrentRole(user) === 'sub_admin' && <Sparkles className='w-4 h-4 mr-2 text-blue-400' />}
-                              {getUserCurrentRole(user) === 'user' && <User className='w-4 h-4 mr-2 text-gray-400' />}
-                              <span className='capitalize'>
-                                {getUserCurrentRole(user) === 'sub_admin' ? 'Sub-Admin' : getUserCurrentRole(user)}
-                              </span>
-                              <ChevronDown className='w-4 h-4 ml-2' />
+                            <Button size="sm" variant="outline" className="h-7 px-2 border-white/10 text-gray-400">
+                              <MoreVertical className="w-3 h-3" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent className='bg-black/95 border-white/10 text-white'>
-                            <DropdownMenuLabel>Change Role</DropdownMenuLabel>
-                            <DropdownMenuSeparator className='bg-white/10' />
+                          <DropdownMenuContent className="bg-gray-900 border-white/10 text-white">
+                            <DropdownMenuLabel className="text-xs">Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-white/10" />
                             <DropdownMenuItem
                               onClick={() => {
-                                setSelectedUserForRole(user);
-                                setSelectedRole('user');
-                                setRoleDialogOpen(true);
+                                setSelectedUserId(user.id);
+                                updateUserStatus.mutate({
+                                  id: user.id,
+                                  status: user.status === "active" ? "suspended" : "active",
+                                });
                               }}
-                              className='hover:bg-white/10 cursor-pointer'
-                              disabled={getUserCurrentRole(user) === 'user'}
+                              disabled={updateUserStatus.isPending && selectedUserId === user.id}
+                              className="hover:bg-white/10 cursor-pointer text-xs"
                             >
-                              <User className='w-4 h-4 mr-2 text-gray-400' />
-                              User
-                              {getUserCurrentRole(user) === 'user' && <span className='ml-auto text-xs text-gray-500'>Current</span>}
+                              {user.status === "active" ? (
+                                <><UserX className="w-3 h-3 mr-2 text-red-400" />Suspend</>
+                              ) : (
+                                <><UserCheck className="w-3 h-3 mr-2 text-emerald-400" />Activate</>
+                              )}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
-                                setSelectedUserForRole(user);
-                                setSelectedRole('sub_admin');
-                                setRoleDialogOpen(true);
+                                setSelectedUserId(user.id);
+                                if (user.wallet?.isLocked) {
+                                  unlockWallet.mutate(user.id);
+                                } else {
+                                  lockWallet.mutate(user.id);
+                                }
                               }}
-                              className='hover:bg-white/10 cursor-pointer'
-                              disabled={getUserCurrentRole(user) === 'sub_admin'}
+                              disabled={(lockWallet.isPending || unlockWallet.isPending) && selectedUserId === user.id}
+                              className="hover:bg-white/10 cursor-pointer text-xs"
                             >
-                              <Sparkles className='w-4 h-4 mr-2 text-blue-400' />
-                              Sub-Admin
-                              {getUserCurrentRole(user) === 'sub_admin' && <span className='ml-auto text-xs text-gray-500'>Current</span>}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedUserForRole(user);
-                                setSelectedRole('admin');
-                                setRoleDialogOpen(true);
-                              }}
-                              className='hover:bg-white/10 cursor-pointer'
-                              disabled={getUserCurrentRole(user) === 'admin'}
-                            >
-                              <Crown className='w-4 h-4 mr-2 text-purple-400' />
-                              Admin
-                              {getUserCurrentRole(user) === 'admin' && <span className='ml-auto text-xs text-gray-500'>Current</span>}
+                              {user.wallet?.isLocked ? (
+                                <><Unlock className="w-3 h-3 mr-2 text-emerald-400" />Unlock Wallet</>
+                              ) : (
+                                <><Lock className="w-3 h-3 mr-2 text-amber-400" />Lock Wallet</>
+                              )}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      )}
-
-                      {/* Actions Dropdown */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            size='sm'
-                            variant='outline'
-                            className='border-white/20 text-white hover:bg-white/10'
-                          >
-                            <MoreVertical className='w-4 h-4' />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className='bg-black/95 border-white/10 text-white'>
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuSeparator className='bg-white/10' />
-                          
-                          {/* Account Status */}
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUserId(user.id);
-                              updateUserStatus.mutate({
-                                id: user.id,
-                                status: user.status === 'active' ? 'suspended' : 'active',
-                              });
-                            }}
-                            className='hover:bg-white/10 cursor-pointer'
-                            disabled={updateUserStatus.isPending && selectedUserId === user.id}
-                          >
-                            {user.status === 'active' ? (
-                              <>
-                                <UserX className='w-4 h-4 mr-2 text-red-400' />
-                                Suspend Account
-                              </>
-                            ) : (
-                              <>
-                                <UserCheck className='w-4 h-4 mr-2 text-emerald-400' />
-                                Activate Account
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          
-                          {/* Wallet Status */}
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedUserId(user.id);
-                              if (user.wallet.isLocked) {
-                                unlockWallet.mutate(user.id);
-                              } else {
-                                lockWallet.mutate(user.id);
-                              }
-                            }}
-                            className='hover:bg-white/10 cursor-pointer'
-                            disabled={(user.wallet.isLocked ? unlockWallet.isPending : lockWallet.isPending) && selectedUserId === user.id}
-                          >
-                            {user.wallet.isLocked ? (
-                              <>
-                                <Unlock className='w-4 h-4 mr-2 text-green-400' />
-                                Unlock Wallet
-                              </>
-                            ) : (
-                              <>
-                                <Lock className='w-4 h-4 mr-2 text-amber-400' />
-                                Lock Wallet
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      </div>
                     </div>
+
+                    {/* Badges */}
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {(user.roles || []).map((role: string) => (
+                        <Badge
+                          key={role}
+                          className={`text-xs ${
+                            role === "admin"
+                              ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
+                              : role === "sub_admin"
+                              ? "bg-indigo-500/20 text-indigo-400 border-indigo-500/30"
+                              : "bg-gray-500/20 text-gray-400 border-gray-500/30"
+                          }`}
+                        >
+                          {role === "admin" && <Crown className="w-2.5 h-2.5 mr-1" />}
+                          {role === "sub_admin" && <Sparkles className="w-2.5 h-2.5 mr-1" />}
+                          {role === "sub_admin" ? "Sub-Admin" : role}
+                        </Badge>
+                      ))}
+                      <Badge
+                        className={`text-xs ${
+                          user.status === "active"
+                            ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                            : "bg-red-500/20 text-red-400 border-red-500/30"
+                        }`}
+                      >
+                        {user.status}
+                      </Badge>
+                      {user.isEmailVerified && (
+                        <Badge className="text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                          <Mail className="w-2.5 h-2.5 mr-1" />
+                          Verified
+                        </Badge>
+                      )}
+                      {user.kycCompleted && (
+                        <Badge className="text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                          <CheckCircle className="w-2.5 h-2.5 mr-1" />
+                          KYC
+                        </Badge>
+                      )}
+                      <Badge
+                        className={`text-xs ${
+                          user.wallet?.isLocked
+                            ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                        }`}
+                      >
+                        {user.wallet?.isLocked ? <Lock className="w-2.5 h-2.5 mr-1" /> : <Wallet className="w-2.5 h-2.5 mr-1" />}
+                        Wallet
+                      </Badge>
+                    </div>
+
+                    {user.createdAt && (
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Calendar className="w-3 h-3" />
+                        Joined {new Date(user.createdAt).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
             )}
-            
-            {/* Pagination Controls */}
-            {!isLoading && (
+
+            {!isLoading && totalPages > 1 && (
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
@@ -766,169 +399,73 @@ export default function AdminUsersPage() {
                 hasPrevPage={hasPrevPage}
                 onPageChange={setCurrentPage}
                 itemName="users"
+                className="mt-4"
               />
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Role Change Confirmation Dialog */}
+      {/* Role Change Dialog */}
       <Dialog open={roleDialogOpen} onOpenChange={setRoleDialogOpen}>
-        <DialogContent className='bg-black/95 backdrop-blur-xl border-white/10 text-white'>
+        <DialogContent className="bg-gray-900 border-white/10 text-white max-w-sm mx-4">
           <DialogHeader>
-            <DialogTitle className={`text-2xl font-bold bg-gradient-to-r ${
-              selectedRole === 'admin' ? 'from-purple-400 to-pink-400' :
-              selectedRole === 'sub_admin' ? 'from-blue-400 to-cyan-400' :
-              'from-gray-400 to-gray-300'
-            } bg-clip-text text-transparent`}>
-              Change User Role
-            </DialogTitle>
-            <DialogDescription className='text-gray-400'>
-              Are you sure you want to change this user&apos;s role to {
-                selectedRole === 'admin' ? 'Admin' :
-                selectedRole === 'sub_admin' ? 'Sub-Admin' : 'User'
-              }?
+            <DialogTitle className="text-xl font-bold">Change Role</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              Update role for {selectedUserForRole?.firstName} {selectedUserForRole?.lastName}
             </DialogDescription>
           </DialogHeader>
-          
-          {selectedUserForRole && (
-            <div className='space-y-4'>
-              <div className='p-4 rounded-xl bg-white/5 border border-white/10'>
-                <div className='space-y-2'>
-                  <div className='flex items-center gap-2'>
-                    <Mail className='w-4 h-4 text-gray-400' />
-                    <span className='text-sm text-gray-300'>User Details</span>
-                  </div>
-                  <div className='pl-6'>
-                    <p className='text-white font-medium'>
-                      {capitalize(selectedUserForRole.firstName)} {capitalize(selectedUserForRole.lastName)}
-                    </p>
-                    <p className='text-gray-400 text-sm'>{selectedUserForRole.email}</p>
-                    <div className='flex items-center gap-2 mt-2'>
-                      <span className='text-xs text-gray-500'>Current Role:</span>
-                      <Badge className={
-                        getUserCurrentRole(selectedUserForRole) === 'admin' 
-                          ? 'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                          : getUserCurrentRole(selectedUserForRole) === 'sub_admin'
-                          ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                          : 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-                      }>
-                        {getUserCurrentRole(selectedUserForRole) === 'admin' && <Crown className='w-3 h-3 mr-1' />}
-                        {getUserCurrentRole(selectedUserForRole) === 'sub_admin' && <Sparkles className='w-3 h-3 mr-1' />}
-                        {getUserCurrentRole(selectedUserForRole) === 'user' && <User className='w-3 h-3 mr-1' />}
-                        {getUserCurrentRole(selectedUserForRole) === 'sub_admin' ? 'Sub-Admin' : capitalize(getUserCurrentRole(selectedUserForRole))}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              {/* Role Permissions */}
-              {selectedRole === 'admin' ? (
-                <div className='p-4 rounded-xl bg-purple-500/10 border border-purple-500/30'>
-                  <div className='flex items-start gap-3'>
-                    <Crown className='w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5' />
-                    <div>
-                      <p className='text-purple-400 font-medium mb-2'>Admin Permissions:</p>
-                      <ul className='text-gray-300 text-sm space-y-1'>
-                        <li className='text-emerald-400'>✓ Full system access</li>
-                        <li className='text-emerald-400'>✓ Manage all users and roles</li>
-                        <li className='text-emerald-400'>✓ Create, edit, and delete polls</li>
-                        <li className='text-emerald-400'>✓ Select poll winners</li>
-                        <li className='text-emerald-400'>✓ Access admin dashboard</li>
-                        <li className='text-emerald-400'>✓ View all transactions</li>
-                        <li className='text-emerald-400'>✓ Manage system settings</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              ) : selectedRole === 'sub_admin' ? (
-                <div className='p-4 rounded-xl bg-blue-500/10 border border-blue-500/30'>
-                  <div className='flex items-start gap-3'>
-                    <Sparkles className='w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5' />
-                    <div>
-                      <p className='text-blue-400 font-medium mb-2'>Sub-Admin Permissions:</p>
-                      <ul className='text-gray-300 text-sm space-y-1'>
-                        <li className='text-emerald-400'>✓ Create and edit polls</li>
-                        <li className='text-emerald-400'>✓ Close and cancel polls</li>
-                        <li className='text-emerald-400'>✓ Manage poll operations</li>
-                        <li className='text-red-400'>✗ Cannot select winners</li>
-                        <li className='text-red-400'>✗ Cannot delete polls</li>
-                        <li className='text-red-400'>✗ No user management</li>
-                        <li className='text-red-400'>✗ No admin dashboard access</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className='p-4 rounded-xl bg-gray-500/10 border border-gray-500/30'>
-                  <div className='flex items-start gap-3'>
-                    <User className='w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5' />
-                    <div>
-                      <p className='text-gray-400 font-medium mb-2'>User Permissions:</p>
-                      <ul className='text-gray-300 text-sm space-y-1'>
-                        <li className='text-emerald-400'>✓ Participate in polls</li>
-                        <li className='text-emerald-400'>✓ View poll results</li>
-                        <li className='text-emerald-400'>✓ Manage own wallet</li>
-                        <li className='text-red-400'>✗ No poll creation</li>
-                        <li className='text-red-400'>✗ No poll management</li>
-                        <li className='text-red-400'>✗ No admin privileges</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className='p-4 rounded-xl bg-amber-500/10 border border-amber-500/30'>
-                <div className='flex items-center gap-2'>
-                  <AlertTriangle className='w-4 h-4 text-amber-400' />
-                  <p className='text-amber-400 text-sm'>
-                    {selectedRole === 'admin' 
-                      ? 'This will grant full administrative access. Make sure you trust this user completely.'
-                      : selectedRole === 'sub_admin'
-                      ? 'This will grant poll management privileges. Make sure you trust this user.'
-                      : 'This will remove all administrative privileges from this user.'}
-                  </p>
-                </div>
+          <div className="space-y-3 mt-2">
+            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+              <p className="text-xs text-gray-400 mb-1">New Role</p>
+              <div className="flex items-center gap-2">
+                {selectedRole === "admin" && <Crown className="w-4 h-4 text-violet-400" />}
+                {selectedRole === "sub_admin" && <Sparkles className="w-4 h-4 text-indigo-400" />}
+                {selectedRole === "user" && <User className="w-4 h-4 text-gray-400" />}
+                <span className="text-white font-medium">
+                  {selectedRole === "sub_admin" ? "Sub-Admin" : capitalize(selectedRole || "")}
+                </span>
               </div>
             </div>
-          )}
 
-          <DialogFooter className='mt-6'>
+            {selectedRole === "admin" && (
+              <div className="p-3 rounded-xl bg-violet-500/10 border border-violet-500/30">
+                <p className="text-xs text-violet-300">Full system access including user management and settings.</p>
+              </div>
+            )}
+            {selectedRole === "sub_admin" && (
+              <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/30">
+                <p className="text-xs text-indigo-300">Can create and manage polls, but cannot select winners or manage users.</p>
+              </div>
+            )}
+            {selectedRole === "user" && (
+              <div className="p-3 rounded-xl bg-gray-500/10 border border-gray-500/30">
+                <p className="text-xs text-gray-400">Standard user with no admin privileges.</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="mt-4">
             <Button
-              variant='outline'
+              variant="outline"
               onClick={() => {
                 setRoleDialogOpen(false);
                 setSelectedUserForRole(null);
-                setSelectedRole('');
+                setSelectedRole("");
               }}
-              className='border-white/20 text-gray-400 hover:text-white hover:bg-white/10'
             >
               Cancel
             </Button>
             <Button
+              variant="gradient"
               onClick={handleUpdateUserRole}
               disabled={updateUserRole.isPending}
-              className={`font-bold ${
-                selectedRole === 'admin' 
-                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700'
-                  : selectedRole === 'sub_admin'
-                  ? 'bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700'
-                  : 'bg-gradient-to-r from-gray-600 to-gray-500 hover:from-gray-700 hover:to-gray-600'
-              } text-white`}
             >
               {updateUserRole.isPending ? (
-                <>
-                  <span className='animate-spin mr-2'>⚡</span>
-                  Updating Role...
-                </>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating...</>
               ) : (
-                <>
-                  {selectedRole === 'admin' && <Crown className='w-4 h-4 mr-2' />}
-                  {selectedRole === 'sub_admin' && <Sparkles className='w-4 h-4 mr-2' />}
-                  {selectedRole === 'user' && <User className='w-4 h-4 mr-2' />}
-                  Confirm Change
-                </>
+                "Confirm"
               )}
             </Button>
           </DialogFooter>

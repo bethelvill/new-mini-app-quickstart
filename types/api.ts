@@ -198,17 +198,11 @@ export interface Stake {
 
 export interface DepositRequest {
   amount: number;
-  email: string;
-  phoneNumber: string;
-  name: string;
 }
 
 export interface WithdrawalRequest {
   amount: number;
-  accountNumber: string;
-  accountName: string;
-  bankCode: string;
-  bankName: string;
+  accountNumber: string; // Wallet address (e.g., 0x...)
 }
 
 export interface Transaction {
@@ -304,8 +298,8 @@ export interface StakesParams extends PaginationParams {
 }
 
 export interface TransactionParams extends PaginationParams {
-  type?: string;
-  status?: string;
+  type?: 'deposit' | 'withdrawal' | 'stake' | 'winnings' | 'bonus' | 'refund_stake' | 'fee';
+  status?: 'completed' | 'pending' | 'processing' | 'failed';
   startDate?: string;
   endDate?: string;
 }

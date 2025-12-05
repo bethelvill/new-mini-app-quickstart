@@ -26,7 +26,7 @@ export const handleUnauthorized = () => {
     // Show toast only once per session
     if (!hasShownUnauthorizedToast) {
       hasShownUnauthorizedToast = true;
-      toast.error("Session expired. Please login again.");
+      toast.error("Session expired. Please sign in again.");
     }
   }
 };
@@ -83,7 +83,7 @@ class ApiClient {
             handleUnauthorized();
             // Return early to prevent further processing
             return Promise.reject(
-              new Error("Unauthorized - Redirecting to login")
+              new Error("Unauthorized - Please sign in")
             );
           }
 

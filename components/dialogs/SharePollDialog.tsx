@@ -49,7 +49,7 @@ export default function SharePollDialog({
       setIsCopied(true);
       toast.success('Link copied to clipboard!');
       setTimeout(() => setIsCopied(false), 2000);
-      
+
       // Track share event
       import('@/lib/analytics').then(({ trackPollShared }) => {
         trackPollShared(poll.id, 'link');
@@ -110,7 +110,7 @@ export default function SharePollDialog({
       text
     )}&url=${encodeURIComponent(pollUrl)}`;
     window.open(url, '_blank');
-    
+
     // Track share event
     import('@/lib/analytics').then(({ trackPollShared }) => {
       trackPollShared(poll.id, 'twitter');
@@ -121,7 +121,7 @@ export default function SharePollDialog({
     const text = `Check out this poll on ShowStakr:\n\n*${poll.title}*\n\n${poll.description}\n\n${pollUrl}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
-    
+
     // Track share event
     import('@/lib/analytics').then(({ trackPollShared }) => {
       trackPollShared(poll.id, 'whatsapp');
@@ -147,7 +147,7 @@ export default function SharePollDialog({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className='bg-black/95 backdrop-blur-xl border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle className='text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2'>
+          <DialogTitle className='text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent flex items-center gap-2'>
             Share Poll
           </DialogTitle>
           <DialogDescription className='text-gray-400 text-left'>
@@ -282,9 +282,14 @@ export default function SharePollDialog({
                         color: '#10b981',
                         fontWeight: '700',
                         fontSize: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
                       }}
                     >
-                      ₦{formatNumber(totalAmount)}
+                      <img src="/usdc.svg" alt="USDC" style={{ width: '24px', height: '24px' }} />
+                      {formatNumber(totalAmount)}
                     </div>
                   </td>
                   <td
@@ -311,7 +316,7 @@ export default function SharePollDialog({
                     </div>
                     <div
                       style={{
-                        color: '#a78bfa',
+                        color: '#8b5cf6',
                         fontWeight: '700',
                         fontSize: '28px',
                       }}
@@ -360,10 +365,10 @@ export default function SharePollDialog({
                         .slice(0, 4);
 
                       const colors = [
-                        '#a78bfa',
-                        '#ec4899',
-                        '#10b981',
-                        '#f59e0b',
+                        '#8b5cf6',
+                        '#7c3aed',
+                        '#6366f1',
+                        '#4f46e5',
                       ];
 
                       return sortedOptions.map((option: any, index: number) => (
@@ -458,7 +463,6 @@ export default function SharePollDialog({
                             fontWeight: '500',
                           }}
                         >
-                          📅{' '}
                           {dayjs(poll.createdAt).format('MMM D, YYYY • h:mm A')}
                         </td>
                         <td
@@ -473,11 +477,11 @@ export default function SharePollDialog({
                           Powered by{' '}
                           <span
                             style={{
-                              color: '#ffffff',
+                              color: '#8b5cf6',
                               fontWeight: '700',
                             }}
                           >
-                            Tournest
+                            ShowStakr
                           </span>
                         </td>
                       </tr>
@@ -498,7 +502,7 @@ export default function SharePollDialog({
                 size='sm'
                 onClick={handleCaptureAndDownload}
                 disabled={isCapturing}
-                className='bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600'
+                className='bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600'
               >
                 {isCapturing ? (
                   <>

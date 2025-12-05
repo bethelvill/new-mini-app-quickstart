@@ -144,30 +144,30 @@
 }
 
 .dark {
-  --background: 0 0% 0%;
+  --background: 270 50% 2%;
   --foreground: 0 0% 98%;
-  --card: 0 0% 3.9%;
+  --card: 270 30% 6%;
   --card-foreground: 0 0% 98%;
-  --popover: 0 0% 3.9%;
+  --popover: 270 30% 6%;
   --popover-foreground: 0 0% 98%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 0 0% 9%;
-  --secondary: 0 0% 14.9%;
+  --primary: 270 91% 65%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 270 20% 12%;
   --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 14.9%;
-  --muted-foreground: 0 0% 63.9%;
-  --accent: 0 0% 14.9%;
-  --accent-foreground: 0 0% 98%;
+  --muted: 270 15% 15%;
+  --muted-foreground: 270 10% 60%;
+  --accent: 280 80% 60%;
+  --accent-foreground: 0 0% 100%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 14.9%;
-  --input: 0 0% 14.9%;
-  --ring: 0 0% 83.1%;
-  --chart-1: 220 70% 50%;
-  --chart-2: 160 60% 45%;
-  --chart-3: 30 80% 55%;
-  --chart-4: 280 65% 60%;
-  --chart-5: 340 75% 55%;
+  --border: 270 20% 15%;
+  --input: 270 20% 12%;
+  --ring: 270 91% 65%;
+  --chart-1: 270 70% 60%;
+  --chart-2: 280 60% 55%;
+  --chart-3: 320 70% 55%;
+  --chart-4: 260 65% 50%;
+  --chart-5: 290 75% 60%;
 }
 
 /* ============================================
@@ -246,13 +246,13 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #7c3aed 0%, #ec4899 100%);
+    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
     border-radius: 9999px;
     border: 2px solid black;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #6d28d9 0%, #db2777 100%);
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
   }
 
   /* Firefox scrollbar with brand colors */
@@ -336,35 +336,28 @@
 
 /* Text gradients */
 @utility text-gradient {
-  background-image: linear-gradient(to right, #a78bfa, #f472b6, #fb923c);
+  background-image: linear-gradient(to right, #8b5cf6, #6366f1);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 @utility text-gradient-purple {
-  background-image: linear-gradient(to right, #8b5cf6, #a855f7);
+  background-image: linear-gradient(to right, #8b5cf6, #6366f1);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-@utility text-gradient-pink {
-  background-image: linear-gradient(to right, #ec4899, #f43f5e);
+@utility text-gradient-violet {
+  background-image: linear-gradient(to right, #a78bfa, #818cf8);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-@utility text-gradient-green {
-  background-image: linear-gradient(to right, #10b981, #14b8a6);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-@utility text-gradient-yellow {
-  background-image: linear-gradient(to right, #f59e0b, #f97316);
+@utility text-gradient-indigo {
+  background-image: linear-gradient(to right, #6366f1, #4f46e5);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -409,12 +402,12 @@
   box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
 }
 
-@utility glow-pink {
-  box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+@utility glow-violet {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
 }
 
-@utility glow-emerald {
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+@utility glow-indigo {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
 }
 
 /* Hover lift effect */
@@ -582,7 +575,7 @@ select:focus-visible {
 .gradient-border {
   position: relative;
   background: linear-gradient(#000, #000) padding-box,
-              linear-gradient(to right, #8b5cf6, #ec4899) border-box;
+              linear-gradient(to right, #8b5cf6, #6366f1) border-box;
   border: 2px solid transparent;
   border-radius: 1rem;
 }

@@ -2,8 +2,10 @@
 
 import { useWalletBalance } from "@/lib";
 import { useAuthStore } from "@/stores/authStore";
+import { useTokenRefresh } from "@/hooks/useTokenRefresh";
+import { OnboardingModal } from "@/components/OnboardingModal";
 import { useMiniKit, useQuickAuth } from "@coinbase/onchainkit/minikit";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 interface AuthResponse {
   success: boolean;
@@ -23,7 +25,9 @@ export default function AuthenticatedLayout({
   const { isFrameReady, setFrameReady, context,  } = useMiniKit();
   const { setUser, updateAdmin, updateSubAdmin, updateBalance } =
     useAuthStore();
-  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Proactive token refresh - refreshes before JWT expires (1hr)
+  useTokenRefresh();
 
   // Initialize the miniapp frame
   useEffect(() => {
@@ -35,8 +39,6 @@ export default function AuthenticatedLayout({
   // Authenticate via Farcaster Quick Auth
   const {
     data: authData,
-    isLoading: isAuthLoading,
-    error: authError,
   } = useQuickAuth<AuthResponse>("/api/auth", { method: "GET" });
 
   // Fetch wallet balance
@@ -78,7 +80,7 @@ export default function AuthenticatedLayout({
       setUser(farcasterUser);
       updateAdmin(false);
       updateSubAdmin(false);
-      setIsInitialized(true);
+      // setIsInitialized(true);
     }
   }, [authData, context, setUser, updateAdmin, updateSubAdmin]);
 
@@ -123,5 +125,10 @@ export default function AuthenticatedLayout({
   //   );
   // }
 
-  return <>{children}</>;
+  return (
+    <>
+      <OnboardingModal />
+      {children}
+    </>
+  );
 }

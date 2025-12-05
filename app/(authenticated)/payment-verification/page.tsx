@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useVerifyPayment, useWalletBalance } from '@/lib/wallet';
+import { useSearchParams } from 'next/navigation';
+import { useWalletBalance, useTransactionById } from '@/lib/wallet';
 import { useAuthStore } from '@/stores/authStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,6 @@ import {
   XCircle,
   Clock,
   Loader2,
-  ArrowRight,
   AlertCircle,
   Home,
   Wallet,
@@ -25,86 +24,73 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 
 export default function PaymentVerificationPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { updateBalance } = useAuthStore();
   const { refetch: refetchBalance } = useWalletBalance();
-  
+
   // Get query parameters
   const status = searchParams.get('status');
   const txRef = searchParams.get('tx_ref');
   const transactionId = searchParams.get('transaction_id');
-  
+
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'failed' | 'pending'>('loading');
   const [verificationMessage, setVerificationMessage] = useState('');
   const [transactionAmount, setTransactionAmount] = useState<number>(0);
-  
-  const verifyPaymentMutation = useVerifyPayment();
+
+  // Use the transaction query if we have an ID
+  const { data: transactionData, refetch: refetchTransaction, isLoading: isTransactionLoading } = useTransactionById(transactionId || '');
 
   useEffect(() => {
-    // Only verify if we have the necessary parameters
-    if (txRef && status) {
-      verifyTransaction();
-    } else {
+    // Set status based on query params or transaction data
+    if (transactionId && transactionData?.data) {
+      const transaction = transactionData.data;
+      if (transaction.status === 'completed') {
+        setVerificationStatus('success');
+        setVerificationMessage('Deposit completed successfully!');
+        setTransactionAmount(transaction.amount || 0);
+        refetchBalance().then((result) => {
+          if (result.data?.data?.totalBalance) {
+            updateBalance(result.data.data.totalBalance);
+          }
+        });
+        toast.success('Deposit successful! Your balance has been updated.');
+      } else if (transaction.status === 'pending' || transaction.status === 'processing') {
+        setVerificationStatus('pending');
+        setVerificationMessage('Your deposit is being processed. Please check back later.');
+      } else if (transaction.status === 'failed') {
+        setVerificationStatus('failed');
+        setVerificationMessage('Deposit failed. Please try again or contact support.');
+      }
+    } else if (status) {
+      // Fallback to query param status
+      if (status === 'completed' || status === 'success') {
+        setVerificationStatus('success');
+        setVerificationMessage('Deposit completed successfully!');
+        refetchBalance().then((result) => {
+          if (result.data?.data?.totalBalance) {
+            updateBalance(result.data.data.totalBalance);
+          }
+        });
+      } else if (status === 'pending' || status === 'processing') {
+        setVerificationStatus('pending');
+        setVerificationMessage('Your deposit is being processed.');
+      } else if (status === 'failed') {
+        setVerificationStatus('failed');
+        setVerificationMessage('Deposit failed. Please try again.');
+      } else {
+        setVerificationStatus('failed');
+        setVerificationMessage('Invalid verification status.');
+      }
+    } else if (!transactionId && !status) {
       setVerificationStatus('failed');
-      setVerificationMessage('Invalid payment verification link');
+      setVerificationMessage('Invalid verification link.');
     }
-  }, [txRef, status]);
-
-  const verifyTransaction = async () => {
-    setVerificationStatus('loading');
-    
-    // Use the tx_ref as the reference for verification
-    verifyPaymentMutation.mutate(txRef!, {
-      onSuccess: (response) => {
-        const transaction = response?.data;
-        
-        // Check the transaction status from the API response
-        if (transaction?.status === 'completed') {
-          setVerificationStatus('success');
-          setVerificationMessage('Payment verified successfully!');
-          setTransactionAmount(transaction?.amount || 0);
-          
-          // Refetch balance to update the user's wallet
-          refetchBalance().then((result) => {
-            if (result.data?.data?.totalBalance) {
-              updateBalance(result.data.data.totalBalance);
-            }
-          });
-          
-          toast.success('Deposit successful! Your balance has been updated 🎉');
-        } else if (transaction?.status === 'pending') {
-          setVerificationStatus('pending');
-          setVerificationMessage('Your payment is being processed. Please check back later.');
-        } else if (transaction?.status === 'failed') {
-          setVerificationStatus('failed');
-          setVerificationMessage('Payment failed. If money was deducted, it will be refunded within 24 hours.');
-        } else {
-          // Unknown status
-          setVerificationStatus('failed');
-          setVerificationMessage('Unable to verify payment status. Please contact support.');
-        }
-      },
-      onError: (error: any) => {
-        // If verification fails, check the query parameter status as fallback
-        if (status === 'completed') {
-          // Payment might already be verified
-          setVerificationStatus('success');
-          setVerificationMessage('Payment processing completed!');
-          refetchBalance();
-        } else if (status === 'pending') {
-          setVerificationStatus('pending');
-          setVerificationMessage('Your payment is still being processed.');
-        } else {
-          setVerificationStatus('failed');
-          setVerificationMessage(error?.response?.data?.message || error?.message || 'Payment verification failed');
-        }
-      },
-    });
-  };
+  }, [transactionId, transactionData, status, refetchBalance, updateBalance]);
 
   const handleRetry = () => {
-    verifyTransaction();
+    if (transactionId) {
+      refetchTransaction();
+    }
   };
 
   const getStatusIcon = () => {
@@ -258,10 +244,10 @@ export default function PaymentVerificationPage() {
                   <Button
                     onClick={handleRetry}
                     variant="outline"
-                    disabled={verifyPaymentMutation.isPending}
+                    disabled={isTransactionLoading || !transactionId}
                     className="flex-1 rounded-xl border-white/20 text-white hover:bg-white/10"
                   >
-                    {verifyPaymentMutation.isPending ? (
+                    {isTransactionLoading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
                       <RefreshCw className="w-4 h-4 mr-2" />
@@ -280,10 +266,10 @@ export default function PaymentVerificationPage() {
                   <Button
                     onClick={handleRetry}
                     variant="outline"
-                    disabled={verifyPaymentMutation.isPending}
+                    disabled={isTransactionLoading || !transactionId}
                     className="flex-1 rounded-xl border-white/20 text-white hover:bg-white/10"
                   >
-                    {verifyPaymentMutation.isPending ? (
+                    {isTransactionLoading ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : (
                       <RefreshCw className="w-4 h-4 mr-2" />
@@ -300,7 +286,7 @@ export default function PaymentVerificationPage() {
               ) : (
                 <div className="flex items-center justify-center">
                   <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
-                  <span className="ml-3 text-gray-400">Verifying payment...</span>
+                  <span className="ml-3 text-gray-400">Verifying deposit...</span>
                 </div>
               )}
             </div>

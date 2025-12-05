@@ -1,17 +1,17 @@
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import { SafeArea } from '@coinbase/onchainkit/minikit';
-import { minikitConfig } from '../minikit.config';
-import { RootProvider } from './rootProvider';
-import Navbar from '@/components/Layout/Navbar';
-import BottomNav from '@/components/Layout/BottomNav';
-import Footer from '@/components/Layout/Footer';
-import { RQProvider } from '@/layouts/RQProvider';
-import { Toaster } from 'sonner';
-import { Suspense } from 'react';
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { SafeArea } from "@coinbase/onchainkit/minikit";
+import { minikitConfig } from "../minikit.config";
+import { RootProvider } from "./rootProvider";
+import Navbar from "@/components/Layout/Navbar";
+import BottomNav from "@/components/Layout/BottomNav";
+import Footer from "@/components/Layout/Footer";
+import { RQProvider } from "@/layouts/RQProvider";
+import { Toaster } from "sonner";
+import { Suspense } from "react";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -23,7 +23,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description: minikitConfig.miniapp.description,
     openGraph: {
       title: minikitConfig.miniapp.ogTitle || minikitConfig.miniapp.name,
-      description: minikitConfig.miniapp.ogDescription || minikitConfig.miniapp.description,
+      description:
+        minikitConfig.miniapp.ogDescription ||
+        minikitConfig.miniapp.description,
       url: minikitConfig.miniapp.homeUrl,
       siteName: minikitConfig.miniapp.name,
       images: [
@@ -34,24 +36,24 @@ export async function generateMetadata(): Promise<Metadata> {
           alt: minikitConfig.miniapp.name,
         },
       ],
-      locale: 'en_US',
-      type: 'website',
+      locale: "en_US",
+      type: "website",
     },
     twitter: {
-      card: 'summary_large_image',
+      card: "summary_large_image",
       title: minikitConfig.miniapp.name,
       description: minikitConfig.miniapp.description,
       images: [minikitConfig.miniapp.ogImageUrl],
     },
     other: {
-      'fc:frame': JSON.stringify({
+      "fc:frame": JSON.stringify({
         version: minikitConfig.miniapp.version,
         imageUrl: minikitConfig.miniapp.heroImageUrl,
         button: {
           title: `Open ${minikitConfig.miniapp.name}`,
           action: {
             name: `Launch ${minikitConfig.miniapp.name}`,
-            type: 'launch_frame',
+            type: "launch_frame",
           },
         },
       }),
@@ -65,20 +67,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': 'WebApplication',
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
     name: minikitConfig.miniapp.name,
     description: minikitConfig.miniapp.description,
     url: minikitConfig.miniapp.homeUrl,
-    applicationCategory: 'EntertainmentApplication',
-    operatingSystem: 'Any',
+    applicationCategory: "EntertainmentApplication",
+    operatingSystem: "Any",
   };
 
   return (
-    <html lang='en' className='dark'>
+    <html lang="en" className="dark">
       <head>
         <script
-          type='application/ld+json'
+          type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
@@ -89,17 +91,17 @@ export default function RootLayout({
               <SafeArea>
                 <Navbar />
                 <Toaster
-                  position='top-center'
+                  position="top-center"
                   toastOptions={{
                     style: {
-                      background: 'rgba(0, 0, 0, 0.9)',
-                      color: '#fff',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(10px)',
+                      background: "rgba(0, 0, 0, 0.9)",
+                      color: "#fff",
+                      border: "1px solid rgba(255, 255, 255, 0.1)",
+                      backdropFilter: "blur(10px)",
                     },
                   }}
                 />
-                <main className='min-h-screen pb-24 md:pb-0'>{children}</main>
+                <main className="min-h-screen pb-24 md:pb-0">{children}</main>
                 <Footer />
                 <BottomNav />
               </SafeArea>

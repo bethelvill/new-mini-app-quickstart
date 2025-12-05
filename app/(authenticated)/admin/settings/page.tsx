@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   AlertDialog,
@@ -10,20 +10,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import {
   usePlatformFeatures,
   usePlatformFees,
@@ -32,13 +26,15 @@ import {
   useResetPlatformDefaults,
   useUpdateMaintenance,
   useUpdatePlatformSettings,
-  type PlatformSettings
-} from '@/lib/platform-settings';
-import { useAuthStore } from '@/stores/authStore';
+  type PlatformSettings,
+} from "@/lib/platform-settings";
+import { useAuthStore } from "@/stores/authStore";
+import { cn } from "@/lib/utils";
 import {
   AlertTriangle,
   Banknote,
   Bell,
+  Crown,
   DollarSign,
   Loader2,
   Mail,
@@ -49,774 +45,426 @@ import {
   TrendingUp,
   Trophy,
   Zap,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function PlatformSettingsPage() {
-  const { isAdmin, user } = useAuthStore();
+  const { isAdmin } = useAuthStore();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState("general");
   const [formData, setFormData] = useState<Partial<PlatformSettings>>({});
-  const [maintenanceMessage, setMaintenanceMessage] = useState('');
+  const [maintenanceMessage, setMaintenanceMessage] = useState("");
 
-  // API hooks
-  const { data: settingsData, isLoading: isLoadingSettings } =
-    usePlatformSettings();
+  const { data: settingsData, isLoading } = usePlatformSettings();
   const { data: feesData } = usePlatformFees();
   const { data: limitsData } = usePlatformLimits();
-  const { data: featuresData } = usePlatformFeatures();
 
   const updateSettingsMutation = useUpdatePlatformSettings();
   const resetDefaultsMutation = useResetPlatformDefaults();
   const updateMaintenanceMutation = useUpdateMaintenance();
 
-  // Redirect if not admin
   useEffect(() => {
-    if (!isAdmin) {
-      router.push('/dashboard');
-    }
+    if (!isAdmin) router.push("/dashboard");
   }, [isAdmin, router]);
 
-  // Initialize form data when settings are loaded
   useEffect(() => {
     if (settingsData?.data) {
       setFormData(settingsData.data);
-      setMaintenanceMessage(settingsData.data.maintenanceMessage || '');
+      setMaintenanceMessage(settingsData.data.maintenanceMessage || "");
     }
   }, [settingsData]);
 
   const handleInputChange = (field: keyof PlatformSettings, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleCustomSettingChange = (field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      customSettings: {
-        ...prev.customSettings,
-        [field]: value,
-      },
+      customSettings: { ...prev.customSettings, [field]: value },
     }));
   };
 
   const handleSaveSettings = () => {
-    // Remove server-generated fields before submitting
-    const { id, createdAt, updatedAt, lastUpdatedBy, ...cleanFormData } =
-      formData as any;
-
+    const { id, createdAt, updatedAt, lastUpdatedBy, ...cleanFormData } = formData as any;
     updateSettingsMutation.mutate(cleanFormData, {
-      onSuccess: () => {
-        toast.success('Platform settings updated successfully! 🎉');
-      },
-      onError: () => {
-        toast.error('Failed to update settings. Please try again.');
-      },
+      onSuccess: () => toast.success("Settings updated"),
+      onError: () => toast.error("Failed to update settings"),
     });
   };
 
   const handleResetDefaults = () => {
     resetDefaultsMutation.mutate(undefined, {
-      onSuccess: () => {
-        toast.success('Settings reset to defaults! 🔄');
-      },
-      onError: () => {
-        toast.error('Failed to reset settings. Please try again.');
-      },
+      onSuccess: () => toast.success("Settings reset to defaults"),
+      onError: () => toast.error("Failed to reset settings"),
     });
   };
 
   const handleToggleMaintenance = () => {
-    const newMaintenanceMode = !formData.maintenanceMode;
+    const newMode = !formData.maintenanceMode;
     updateMaintenanceMutation.mutate(
       {
-        maintenanceMode: newMaintenanceMode,
-        maintenanceMessage:
-          maintenanceMessage ||
-          'System is under maintenance. Please check back later.',
+        maintenanceMode: newMode,
+        maintenanceMessage: maintenanceMessage || "System is under maintenance.",
       },
       {
         onSuccess: () => {
-          setFormData((prev) => ({
-            ...prev,
-            maintenanceMode: newMaintenanceMode,
-          }));
-          toast.success(
-            newMaintenanceMode
-              ? 'Maintenance mode enabled! 🔧'
-              : 'Maintenance mode disabled! ✅'
-          );
+          setFormData((prev) => ({ ...prev, maintenanceMode: newMode }));
+          toast.success(newMode ? "Maintenance enabled" : "Maintenance disabled");
         },
-        onError: () => {
-          toast.error('Failed to update maintenance mode.');
-        },
+        onError: () => toast.error("Failed to update maintenance mode"),
       }
     );
   };
 
-  if (isLoadingSettings) {
+  if (isLoading) {
     return (
-      <div className='min-h-screen bg-black flex items-center justify-center'>
-        <Loader2 className='w-8 h-8 text-violet-500 animate-spin' />
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
       </div>
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!isAdmin) return null;
+
+  const tabs = [
+    { value: "general", label: "General", icon: Settings },
+    { value: "fees", label: "Fees", icon: DollarSign },
+    { value: "limits", label: "Limits", icon: TrendingUp },
+    { value: "features", label: "Features", icon: Zap },
+    { value: "notifications", label: "Alerts", icon: Bell },
+  ];
 
   return (
-    <div className='min-h-screen bg-black py-8 px-4'>
-      <div className='max-w-7xl mx-auto'>
+    <div className="min-h-screen bg-black">
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-violet-600/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="relative px-4 sm:px-6 py-6 max-w-3xl mx-auto">
         {/* Header */}
-        <div className='mb-8'>
-          <h1 className='text-3xl sm:text-4xl font-black mb-2'>
-            <span className='bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-transparent'>
-              Platform Settings
-            </span>
-          </h1>
-          <p className='text-gray-400'>
-            Configure global platform settings and features
-          </p>
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Badge className="bg-violet-500/20 text-violet-400 border-violet-500/30 text-xs">
+              <Crown className="w-3 h-3 mr-1" />
+              Admin
+            </Badge>
+          </div>
+          <h1 className="text-2xl font-black text-white">Settings</h1>
+          <p className="text-gray-500 text-sm">Platform configuration</p>
         </div>
 
-        {/* Maintenance Mode Alert */}
+        {/* Maintenance Alert */}
         {formData.maintenanceMode && (
-          <div className='mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30'>
-            <div className='flex items-start gap-3'>
-              <AlertTriangle className='w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5' />
-              <div>
-                <p className='text-amber-400 font-medium'>
-                  Maintenance Mode Active
-                </p>
-                <p className='text-gray-400 text-sm mt-1'>
-                  The platform is currently in maintenance mode. Users cannot
-                  access most features.
-                </p>
-              </div>
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 mb-6">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span className="text-sm text-amber-400 font-medium">Maintenance Mode Active</span>
             </div>
           </div>
         )}
 
         {/* Quick Stats */}
-        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
-          <Card className='bg-white/5 border-white/10'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <p className='text-gray-400 text-sm'>Platform Fee</p>
-                  <p className='text-2xl font-bold text-white'>
-                    {feesData?.data?.platformFeePercentage || 0}%
-                  </p>
-                </div>
-                <DollarSign className='w-8 h-8 text-emerald-400' />
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {[
+            { label: "Platform Fee", value: `${feesData?.data?.platformFeePercentage || 0}%`, icon: DollarSign, color: "text-emerald-400" },
+            { label: "Withdrawal Fee", value: `${feesData?.data?.withdrawalFeePercentage || 0}%`, icon: Banknote, color: "text-violet-400" },
+            { label: "Min Stake", value: `$${limitsData?.data?.minStakeAmount || 0}`, icon: TrendingUp, color: "text-indigo-400" },
+            { label: "Max Stake", value: `$${limitsData?.data?.maxStakeAmount || 0}`, icon: Trophy, color: "text-amber-400" },
+          ].map((stat) => (
+            <div key={stat.label} className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+              <div className="flex items-center justify-between mb-1">
+                <stat.icon className={`w-4 h-4 ${stat.color}`} />
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className='bg-white/5 border-white/10'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <p className='text-gray-400 text-sm'>Withdrawal Fee</p>
-                  <p className='text-2xl font-bold text-white'>
-                    {feesData?.data?.withdrawalFeePercentage || 0}%
-                  </p>
-                </div>
-                <Banknote className='w-8 h-8 text-pink-400' />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='bg-white/5 border-white/10'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <p className='text-gray-400 text-sm'>Min Stake</p>
-                  <p className='text-2xl font-bold text-white'>
-                    ₦{limitsData?.data?.minStakeAmount || 0}
-                  </p>
-                </div>
-                <TrendingUp className='w-8 h-8 text-violet-400' />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className='bg-white/5 border-white/10'>
-            <CardContent className='p-4'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <p className='text-gray-400 text-sm'>Max Stake</p>
-                  <p className='text-2xl font-bold text-white'>
-                    {limitsData?.data?.maxStakeAmount || 0}
-                  </p>
-                </div>
-                <Trophy className='w-8 h-8 text-amber-400' />
-              </div>
-            </CardContent>
-          </Card>
+              <p className="text-xs text-gray-500">{stat.label}</p>
+              <p className="text-lg font-bold text-white">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Settings Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={setActiveTab}
-          className='space-y-6'
-        >
-          {/* Mobile Select */}
-          <div className='sm:hidden'>
-            <select
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value)}
-              className='w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white appearance-none cursor-pointer focus:outline-none focus:border-violet-500/50'
-              style={{
-                backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'right 1rem center',
-                backgroundSize: '1.5em 1.5em',
-                paddingRight: '3rem',
-              }}
+        {/* Tabs */}
+        <div className="flex gap-1 p-1 rounded-xl bg-white/[0.03] border border-white/[0.06] mb-6 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap min-w-fit",
+                activeTab === tab.value
+                  ? "bg-violet-500/20 text-violet-400"
+                  : "text-gray-500 hover:text-white"
+              )}
             >
-              <option value='general' className='bg-black'>
-                ⚙️ General Settings
-              </option>
-              <option value='fees' className='bg-black'>
-                💰 Fees Configuration
-              </option>
-              <option value='limits' className='bg-black'>
-                📊 Transaction Limits
-              </option>
-              <option value='features' className='bg-black'>
-                ⚡ Features
-              </option>
-              <option value='notifications' className='bg-black'>
-                🔔 Notifications
-              </option>
-            </select>
-          </div>
+              <tab.icon className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          ))}
+        </div>
 
-          {/* Desktop Tabs */}
-          <TabsList className='hidden sm:flex bg-white/5 border border-white/10 h-auto p-1 gap-1'>
-            <TabsTrigger
-              value='general'
-              className='data-[state=active]:bg-violet-500/20 flex-1 text-sm'
-            >
-              <Settings className='w-4 h-4 mr-2' />
-              General
-            </TabsTrigger>
-            <TabsTrigger
-              value='fees'
-              className='data-[state=active]:bg-violet-500/20 flex-1 text-sm'
-            >
-              <DollarSign className='w-4 h-4 mr-2' />
-              Fees
-            </TabsTrigger>
-            <TabsTrigger
-              value='limits'
-              className='data-[state=active]:bg-violet-500/20 flex-1 text-sm'
-            >
-              <TrendingUp className='w-4 h-4 mr-2' />
-              Limits
-            </TabsTrigger>
-            <TabsTrigger
-              value='features'
-              className='data-[state=active]:bg-violet-500/20 flex-1 text-sm'
-            >
-              <Zap className='w-4 h-4 mr-2' />
-              Features
-            </TabsTrigger>
-            <TabsTrigger
-              value='notifications'
-              className='data-[state=active]:bg-violet-500/20 flex-1 text-sm'
-            >
-              <Bell className='w-4 h-4 mr-2' />
-              Notifications
-            </TabsTrigger>
-          </TabsList>
-
-          {/* General Settings */}
-          <TabsContent value='general' className='space-y-6'>
-            <Card className='bg-white/5 border-white/10'>
-              <CardHeader>
-                <CardTitle>General Settings</CardTitle>
-                <CardDescription>
-                  Configure basic platform settings
-                </CardDescription>
+        {/* Tab Content */}
+        {activeTab === "general" && (
+          <div className="space-y-4">
+            <Card className="bg-white/[0.03] border-white/[0.06]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white text-base">General Settings</CardTitle>
               </CardHeader>
-              <CardContent className='space-y-6'>
-                <div className='space-y-2'>
-                  <Label>Default Currency</Label>
+              <CardContent className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-gray-300">Default Currency</Label>
                   <Input
-                    value={formData.defaultCurrency || ''}
-                    onChange={(e) =>
-                      handleInputChange('defaultCurrency', e.target.value)
-                    }
-                    className='bg-white/5 border-white/10'
-                    placeholder='NGN'
+                    value={formData.defaultCurrency || ""}
+                    onChange={(e) => handleInputChange("defaultCurrency", e.target.value)}
+                    className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                    placeholder="USDC"
                   />
                 </div>
-
-                <div className='space-y-2'>
-                  <Label>Poll Duration (Hours)</Label>
-                  <Input
-                    type='number'
-                    value={formData.pollDurationHours || ''}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'pollDurationHours',
-                        parseInt(e.target.value)
-                      )
-                    }
-                    className='bg-white/5 border-white/10'
-                    placeholder='24'
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <Label>Max Polls Per User</Label>
-                  <Input
-                    type='number'
-                    value={formData.maxPollsPerUser || ''}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'maxPollsPerUser',
-                        parseInt(e.target.value)
-                      )
-                    }
-                    className='bg-white/5 border-white/10'
-                    placeholder='10'
-                  />
-                </div>
-
-                <div className='space-y-2'>
-                  <Label>Max Winners Per Poll</Label>
-                  <Input
-                    type='number'
-                    value={formData.maxWinnersPerPoll || ''}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'maxWinnersPerPoll',
-                        parseInt(e.target.value)
-                      )
-                    }
-                    className='bg-white/5 border-white/10'
-                    placeholder='3'
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm text-gray-300">Poll Duration (hrs)</Label>
+                    <Input
+                      type="number"
+                      value={formData.pollDurationHours || ""}
+                      onChange={(e) => handleInputChange("pollDurationHours", parseInt(e.target.value))}
+                      className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm text-gray-300">Max Polls/User</Label>
+                    <Input
+                      type="number"
+                      value={formData.maxPollsPerUser || ""}
+                      onChange={(e) => handleInputChange("maxPollsPerUser", parseInt(e.target.value))}
+                      className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Maintenance Mode */}
-            <Card className='bg-white/5 border-white/10'>
-              <CardHeader>
-                <CardTitle>Maintenance Mode</CardTitle>
-                <CardDescription>Control platform availability</CardDescription>
+            <Card className="bg-white/[0.03] border-white/[0.06]">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-white text-base">Maintenance Mode</CardTitle>
               </CardHeader>
-              <CardContent className='space-y-6'>
-                <div className='flex items-center justify-between'>
-                  <div className='space-y-1'>
-                    <Label>Maintenance Mode</Label>
-                    <p className='text-sm text-gray-400'>
-                      Enable to prevent user access during updates
-                    </p>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-white">Enable Maintenance</p>
+                    <p className="text-xs text-gray-500">Disable user access during updates</p>
                   </div>
                   <Switch
                     checked={formData.maintenanceMode || false}
                     onCheckedChange={handleToggleMaintenance}
-                    className='data-[state=checked]:bg-violet-500'
+                    className="data-[state=checked]:bg-violet-500"
                   />
                 </div>
-
-                <div className='space-y-2'>
-                  <Label>Maintenance Message</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-gray-300">Message</Label>
                   <Textarea
                     value={maintenanceMessage}
                     onChange={(e) => setMaintenanceMessage(e.target.value)}
-                    className='bg-white/5 border-white/10 min-h-[100px]'
-                    placeholder='System is under maintenance. Please check back later.'
+                    className="bg-white/[0.03] border-white/[0.06] text-white rounded-xl min-h-[80px]"
+                    placeholder="System under maintenance..."
                   />
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        )}
 
-          {/* Fees Settings */}
-          <TabsContent value='fees' className='space-y-6'>
-            <Card className='bg-white/5 border-white/10'>
-              <CardHeader>
-                <CardTitle>Fee Configuration</CardTitle>
-                <CardDescription>
-                  Set platform and transaction fees
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-6'>
-                <div className='space-y-2'>
-                  <Label>Platform Fee Percentage</Label>
-                  <div className='relative'>
-                    <Input
-                      type='number'
-                      step='0.1'
-                      value={formData.platformFeePercentage || ''}
-                      onChange={(e) =>
-                        handleInputChange(
-                          'platformFeePercentage',
-                          parseFloat(e.target.value)
-                        )
-                      }
-                      className='bg-white/5 border-white/10 pr-12'
-                      placeholder='10'
-                    />
-                    <span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-400'>
-                      %
-                    </span>
-                  </div>
-                  <p className='text-xs text-gray-500'>
-                    Fee charged on winning stakes
-                  </p>
+        {activeTab === "fees" && (
+          <Card className="bg-white/[0.03] border-white/[0.06]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-white text-base">Fee Configuration</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-sm text-gray-300">Platform Fee (%)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={formData.platformFeePercentage || ""}
+                  onChange={(e) => handleInputChange("platformFeePercentage", parseFloat(e.target.value))}
+                  className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                />
+                <p className="text-xs text-gray-500">Fee on winning stakes</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-gray-300">Withdrawal Fee (%)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={formData.withdrawalFeePercentage || ""}
+                  onChange={(e) => handleInputChange("withdrawalFeePercentage", parseFloat(e.target.value))}
+                  className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                />
+                <p className="text-xs text-gray-500">Fee on withdrawals</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {activeTab === "limits" && (
+          <Card className="bg-white/[0.03] border-white/[0.06]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-white text-base">Transaction Limits</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-gray-300">Min Stake (USDC)</Label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    value={formData.minStakeAmount || ""}
+                    onChange={(e) => handleInputChange("minStakeAmount", parseFloat(e.target.value))}
+                    className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                  />
                 </div>
-
-                <div className='space-y-2'>
-                  <Label>Withdrawal Fee Percentage</Label>
-                  <div className='relative'>
-                    <Input
-                      type='number'
-                      step='0.1'
-                      value={formData.withdrawalFeePercentage || ''}
-                      onChange={(e) =>
-                        handleInputChange(
-                          'withdrawalFeePercentage',
-                          parseFloat(e.target.value)
-                        )
-                      }
-                      className='bg-white/5 border-white/10 pr-12'
-                      placeholder='2.5'
-                    />
-                    <span className='absolute right-4 top-1/2 -translate-y-1/2 text-gray-400'>
-                      %
-                    </span>
-                  </div>
-                  <p className='text-xs text-gray-500'>
-                    Fee charged on withdrawals
-                  </p>
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-gray-300">Max Stake (USDC)</Label>
+                  <Input
+                    type="number"
+                    step="0.0001"
+                    value={formData.maxStakeAmount || ""}
+                    onChange={(e) => handleInputChange("maxStakeAmount", parseFloat(e.target.value))}
+                    className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-sm text-gray-300">Min Withdrawal (USDC)</Label>
+                <Input
+                  type="number"
+                  step="0.0001"
+                  value={formData.minWithdrawalAmount || ""}
+                  onChange={(e) => handleInputChange("minWithdrawalAmount", parseFloat(e.target.value))}
+                  className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Limits Settings */}
-          <TabsContent value='limits' className='space-y-6'>
-            <Card className='bg-white/5 border-white/10'>
-              <CardHeader>
-                <CardTitle>Transaction Limits</CardTitle>
-                <CardDescription>
-                  Set minimum and maximum transaction amounts
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-6'>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                  <div className='space-y-2'>
-                    <Label>Minimum Stake Amount</Label>
-                    <div className='relative'>
-                      <span className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400'>
-                        ₦
-                      </span>
-                      <Input
-                        type='number'
-                        value={formData.minStakeAmount || ''}
-                        onChange={(e) =>
-                          handleInputChange(
-                            'minStakeAmount',
-                            parseInt(e.target.value)
-                          )
-                        }
-                        className='bg-white/5 border-white/10 pl-10'
-                        placeholder='100'
-                      />
-                    </div>
+        {activeTab === "features" && (
+          <Card className="bg-white/[0.03] border-white/[0.06]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-white text-base">Feature Toggles</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                { key: "stakingEnabled", label: "Staking", desc: "Allow users to stake" },
+                { key: "withdrawalsEnabled", label: "Withdrawals", desc: "Allow fund withdrawals" },
+                { key: "pollCreationEnabled", label: "Poll Creation", desc: "Allow new polls" },
+                { key: "registrationEnabled", label: "Registration", desc: "Allow new signups" },
+              ].map((feature) => (
+                <div
+                  key={feature.key}
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]"
+                >
+                  <div>
+                    <p className="text-sm text-white font-medium">{feature.label}</p>
+                    <p className="text-xs text-gray-500">{feature.desc}</p>
                   </div>
-
-                  <div className='space-y-2'>
-                    <Label>Maximum Stake Amount</Label>
-                    <div className='relative'>
-                      <span className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400'>
-                        ₦
-                      </span>
-                      <Input
-                        type='number'
-                        value={formData.maxStakeAmount || ''}
-                        onChange={(e) =>
-                          handleInputChange(
-                            'maxStakeAmount',
-                            parseInt(e.target.value)
-                          )
-                        }
-                        className='bg-white/5 border-white/10 pl-10'
-                        placeholder='1000000'
-                      />
-                    </div>
-                  </div>
-
-                  <div className='space-y-2'>
-                    <Label>Minimum Withdrawal Amount</Label>
-                    <div className='relative'>
-                      <span className='absolute left-4 top-1/2 -translate-y-1/2 text-gray-400'>
-                        ₦
-                      </span>
-                      <Input
-                        type='number'
-                        value={formData.minWithdrawalAmount || ''}
-                        onChange={(e) =>
-                          handleInputChange(
-                            'minWithdrawalAmount',
-                            parseInt(e.target.value)
-                          )
-                        }
-                        className='bg-white/5 border-white/10 pl-10'
-                        placeholder='1000'
-                      />
-                    </div>
-                  </div>
+                  <Switch
+                    checked={(formData as any)[feature.key] || false}
+                    onCheckedChange={(checked) => handleInputChange(feature.key as any, checked)}
+                    className="data-[state=checked]:bg-violet-500"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Features Settings */}
-          <TabsContent value='features' className='space-y-6'>
-            <Card className='bg-white/5 border-white/10'>
-              <CardHeader>
-                <CardTitle>Feature Toggles</CardTitle>
-                <CardDescription>
-                  Enable or disable platform features
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-6'>
-                <div className='space-y-4'>
-                  <div className='flex items-center justify-between p-4 rounded-lg bg-white/5'>
-                    <div className='space-y-1'>
-                      <Label className='text-base'>Staking</Label>
-                      <p className='text-sm text-gray-400'>
-                        Allow users to stake on predictions
-                      </p>
-                    </div>
-                    <Switch
-                      checked={formData.stakingEnabled || false}
-                      onCheckedChange={(checked) =>
-                        handleInputChange('stakingEnabled', checked)
-                      }
-                      className='data-[state=checked]:bg-emerald-500'
-                    />
+        {activeTab === "notifications" && (
+          <Card className="bg-white/[0.03] border-white/[0.06]">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-white text-base">Notification Settings</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {[
+                { key: "emailNotifications", label: "Email Notifications", icon: Mail, color: "text-violet-400" },
+                { key: "smsNotifications", label: "SMS Notifications", icon: MessageSquare, color: "text-indigo-400" },
+              ].map((notif) => (
+                <div
+                  key={notif.key}
+                  className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]"
+                >
+                  <div className="flex items-center gap-3">
+                    <notif.icon className={`w-4 h-4 ${notif.color}`} />
+                    <span className="text-sm text-white">{notif.label}</span>
                   </div>
-
-                  <div className='flex items-center justify-between p-4 rounded-lg bg-white/5'>
-                    <div className='space-y-1'>
-                      <Label className='text-base'>Withdrawals</Label>
-                      <p className='text-sm text-gray-400'>
-                        Allow users to withdraw funds
-                      </p>
-                    </div>
-                    <Switch
-                      checked={formData.withdrawalsEnabled || false}
-                      onCheckedChange={(checked) =>
-                        handleInputChange('withdrawalsEnabled', checked)
-                      }
-                      className='data-[state=checked]:bg-emerald-500'
-                    />
-                  </div>
-
-                  <div className='flex items-center justify-between p-4 rounded-lg bg-white/5'>
-                    <div className='space-y-1'>
-                      <Label className='text-base'>Poll Creation</Label>
-                      <p className='text-sm text-gray-400'>
-                        Allow admins to create new polls
-                      </p>
-                    </div>
-                    <Switch
-                      checked={formData.pollCreationEnabled || false}
-                      onCheckedChange={(checked) =>
-                        handleInputChange('pollCreationEnabled', checked)
-                      }
-                      className='data-[state=checked]:bg-emerald-500'
-                    />
-                  </div>
-
-                  <div className='flex items-center justify-between p-4 rounded-lg bg-white/5'>
-                    <div className='space-y-1'>
-                      <Label className='text-base'>Registration</Label>
-                      <p className='text-sm text-gray-400'>
-                        Allow new user registrations
-                      </p>
-                    </div>
-                    <Switch
-                      checked={formData.registrationEnabled || false}
-                      onCheckedChange={(checked) =>
-                        handleInputChange('registrationEnabled', checked)
-                      }
-                      className='data-[state=checked]:bg-emerald-500'
-                    />
-                  </div>
+                  <Switch
+                    checked={formData.customSettings?.[notif.key as keyof typeof formData.customSettings] || false}
+                    onCheckedChange={(checked) => handleCustomSettingChange(notif.key, checked)}
+                    className="data-[state=checked]:bg-violet-500"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Notification Settings */}
-          <TabsContent value='notifications' className='space-y-6'>
-            <Card className='bg-white/5 border-white/10'>
-              <CardHeader>
-                <CardTitle>Notification Settings</CardTitle>
-                <CardDescription>
-                  Configure notification preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent className='space-y-6'>
-                <div className='space-y-4'>
-                  <div className='flex items-center justify-between p-4 rounded-lg bg-white/5'>
-                    <div className='flex items-center gap-3'>
-                      <Mail className='w-5 h-5 text-violet-400' />
-                      <div className='space-y-1'>
-                        <Label className='text-base'>Email Notifications</Label>
-                        <p className='text-sm text-gray-400'>
-                          Send email notifications to users
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={
-                        formData.customSettings?.emailNotifications || false
-                      }
-                      onCheckedChange={(checked) =>
-                        handleCustomSettingChange('emailNotifications', checked)
-                      }
-                      className='data-[state=checked]:bg-violet-500'
-                    />
-                  </div>
-
-                  <div className='flex items-center justify-between p-4 rounded-lg bg-white/5'>
-                    <div className='flex items-center gap-3'>
-                      <MessageSquare className='w-5 h-5 text-pink-400' />
-                      <div className='space-y-1'>
-                        <Label className='text-base'>SMS Notifications</Label>
-                        <p className='text-sm text-gray-400'>
-                          Send SMS notifications to users
-                        </p>
-                      </div>
-                    </div>
-                    <Switch
-                      checked={
-                        formData.customSettings?.smsNotifications || false
-                      }
-                      onCheckedChange={(checked) =>
-                        handleCustomSettingChange('smsNotifications', checked)
-                      }
-                      className='data-[state=checked]:bg-pink-500'
-                    />
-                  </div>
+              ))}
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/[0.05]">
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-gray-300">Max Login Attempts</Label>
+                  <Input
+                    type="number"
+                    value={formData.customSettings?.maxLoginAttempts || ""}
+                    onChange={(e) => handleCustomSettingChange("maxLoginAttempts", parseInt(e.target.value))}
+                    className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                  />
                 </div>
-
-                <div className='space-y-4 pt-4 border-t border-white/10'>
-                  <div className='space-y-2'>
-                    <Label>Max Login Attempts</Label>
-                    <Input
-                      type='number'
-                      value={formData.customSettings?.maxLoginAttempts || ''}
-                      onChange={(e) =>
-                        handleCustomSettingChange(
-                          'maxLoginAttempts',
-                          parseInt(e.target.value)
-                        )
-                      }
-                      className='bg-white/5 border-white/10'
-                      placeholder='5'
-                    />
-                    <p className='text-xs text-gray-500'>
-                      Number of failed login attempts before account lock
-                    </p>
-                  </div>
-
-                  <div className='space-y-2'>
-                    <Label>Session Timeout (seconds)</Label>
-                    <Input
-                      type='number'
-                      value={formData.customSettings?.sessionTimeout || ''}
-                      onChange={(e) =>
-                        handleCustomSettingChange(
-                          'sessionTimeout',
-                          parseInt(e.target.value)
-                        )
-                      }
-                      className='bg-white/5 border-white/10'
-                      placeholder='3600'
-                    />
-                    <p className='text-xs text-gray-500'>
-                      Time before user session expires
-                    </p>
-                  </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm text-gray-300">Session Timeout (s)</Label>
+                  <Input
+                    type="number"
+                    value={formData.customSettings?.sessionTimeout || ""}
+                    onChange={(e) => handleCustomSettingChange("sessionTimeout", parseInt(e.target.value))}
+                    className="h-10 bg-white/[0.03] border-white/[0.06] text-white rounded-xl"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Action Buttons */}
-        <div className='flex flex-col sm:flex-row gap-4 mt-8'>
+        <div className="flex gap-3 mt-6">
           <Button
             onClick={handleSaveSettings}
             disabled={updateSettingsMutation.isPending}
-            className='flex-1 bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600'
+            className="flex-1 h-11 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 font-bold rounded-xl"
           >
             {updateSettingsMutation.isPending ? (
-              <>
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                Saving...
-              </>
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>
             ) : (
-              <>
-                <Save className='mr-2 h-4 w-4' />
-                Save Settings
-              </>
+              <><Save className="w-4 h-4 mr-2" />Save</>
             )}
           </Button>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
-                variant='outline'
-                className='flex-1 border-amber-500/20 text-amber-400 hover:bg-amber-500/10'
+                variant="outline"
+                className="h-11 px-4 border-amber-500/30 text-amber-400 hover:bg-amber-500/10 rounded-xl"
               >
-                <RotateCcw className='mr-2 h-4 w-4' />
-                Reset to Defaults
+                <RotateCcw className="w-4 h-4" />
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className='bg-black/95 border-white/10'>
+            <AlertDialogContent className="bg-gray-900 border-white/10 max-w-sm mx-4">
               <AlertDialogHeader>
-                <AlertDialogTitle>Reset to Default Settings?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will reset all platform settings to their default values.
-                  This action cannot be undone.
+                <AlertDialogTitle className="text-white">Reset Settings?</AlertDialogTitle>
+                <AlertDialogDescription className="text-gray-400">
+                  This will reset all settings to defaults. Cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className='border-white/20 text-gray-400 hover:bg-white/10'>
-                  Cancel
-                </AlertDialogCancel>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleResetDefaults}
-                  className='bg-gradient-to-r from-amber-500 to-orange-500'
+                  className="bg-amber-500 hover:bg-amber-600 text-white"
                 >
-                  {resetDefaultsMutation.isPending ? (
-                    <>
-                      <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                      Resetting...
-                    </>
-                  ) : (
-                    'Reset Settings'
-                  )}
+                  {resetDefaultsMutation.isPending ? "Resetting..." : "Reset"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
