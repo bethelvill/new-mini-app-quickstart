@@ -53,14 +53,15 @@ import {
   TransactionStatusAction,
 } from "@coinbase/onchainkit/transaction";
 import numeral from "numeral";
+import { useAccount } from "wagmi";
 
 export default function WalletPage() {
   const { user } = useAuthStore();
+  const { address: connectedAddress } = useAccount();
   const [currentPage, setCurrentPage] = useState(1);
   const [isDepositDialogOpen, setIsDepositDialogOpen] = useState(false);
   const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
-  const [walletAddress, setWalletAddress] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [copiedRef, setCopiedRef] = useState<string | null>(null);
   const itemsPerPage = 10;
@@ -112,7 +113,7 @@ export default function WalletPage() {
     useCalculateWithdrawal(
       withdrawalAmount ? parseFloat(withdrawalAmount) : undefined,
       isWithdrawDialogOpen &&
-        !!walletAddress &&
+        !!connectedAddress &&
         !!withdrawalAmount &&
         parseFloat(withdrawalAmount) >= minWithdrawalAmount
     );
@@ -139,11 +140,11 @@ export default function WalletPage() {
   };
 
   const handleWithdraw = async () => {
-    if (!withdrawalAmount || !walletAddress) {
+    if (!withdrawalAmount || !connectedAddress) {
       toast.error("Please fill in all fields");
       return;
     }
-    if (!isValidWalletAddress(walletAddress)) {
+    if (!isValidWalletAddress(connectedAddress || "")) {
       toast.error("Please enter a valid wallet address");
       return;
     }
@@ -158,7 +159,7 @@ export default function WalletPage() {
     }
 
     withdrawMutation.mutate(
-      { amount, accountNumber: walletAddress },
+      { amount, accountNumber: connectedAddress || "" },
       {
         onSuccess: () => {
           toast.success("Withdrawal initiated");
@@ -561,7 +562,6 @@ export default function WalletPage() {
           setIsWithdrawDialogOpen(open);
           if (!open) {
             setWithdrawalAmount("");
-            setWalletAddress("");
           }
         }}
       >
@@ -580,19 +580,14 @@ export default function WalletPage() {
               <Label className="text-sm">Wallet Address</Label>
               <Input
                 type="text"
-                value={walletAddress}
-                onChange={(e) => setWalletAddress(e.target.value)}
-                placeholder="0x..."
-                className="h-11 bg-white/[0.03] border-white/[0.06] text-white rounded-xl font-mono text-sm"
+                value={connectedAddress || ""}
+                readOnly
+                disabled
+                className="h-11 bg-white/[0.03] border-white/[0.06] text-white rounded-xl font-mono text-sm opacity-70 cursor-not-allowed"
               />
-              {walletAddress && !isValidWalletAddress(walletAddress) && (
-                <p className="text-xs text-red-400">Invalid wallet address</p>
-              )}
-              {walletAddress && isValidWalletAddress(walletAddress) && (
-                <p className="text-xs text-emerald-400 flex items-center gap-1">
-                  <CheckCircle className="w-3 h-3" /> Valid address
-                </p>
-              )}
+              <p className="text-xs text-gray-500">
+                Withdrawals will be sent to your connected wallet
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -631,8 +626,7 @@ export default function WalletPage() {
               </div>
             </div>
 
-            {walletAddress &&
-              isValidWalletAddress(walletAddress) &&
+            {connectedAddress &&
               withdrawalAmount &&
               parseFloat(withdrawalAmount) >= minWithdrawalAmount && (
                 <div className="space-y-3">
@@ -753,8 +747,7 @@ export default function WalletPage() {
                 onClick={handleWithdraw}
                 disabled={
                   !withdrawalAmount ||
-                  !walletAddress ||
-                  !isValidWalletAddress(walletAddress) ||
+                  !connectedAddress ||
                   parseFloat(withdrawalAmount) < minWithdrawalAmount ||
                   parseFloat(withdrawalAmount) > balance ||
                   (withdrawalCalc?.data && !withdrawalCalc.data.canWithdraw) ||
