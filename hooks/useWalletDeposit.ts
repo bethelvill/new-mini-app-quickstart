@@ -5,9 +5,11 @@ import {
   useAccount,
   useChainId,
   useSwitchChain,
+  useConfig,
 } from "wagmi";
 import { useSendUserOperation, useCurrentUser } from "@coinbase/cdp-hooks";
 import { parseUnits, encodeFunctionData } from "viem";
+import { getTransactionReceipt } from "wagmi/actions";
 import { toast } from "sonner";
 import type { LifecycleStatus } from "@coinbase/onchainkit/transaction";
 import { useAuthStore } from "@/stores/authStore";
@@ -69,16 +71,71 @@ export function useWalletDeposit(
   const isAuthenticated = !!user;
   const currentChainId = useChainId();
   const { switchChain, isPending: isSwitchingNetwork } = useSwitchChain();
+  const wagmiConfig = useConfig();
 
   // Track if we initiated a deposit (prevents stale state from showing toasts)
   const hasInitiatedDeposit = useRef(false);
+
+  // Track OnchainKit transaction hash for mobile wallet polling
+  const [onchainKitTxHash, setOnchainKitTxHash] = useState<`0x${string}` | null>(null);
+  const onchainKitSuccessHandled = useRef(false);
 
   // Reset deposit tracking when disconnected or logged out
   useEffect(() => {
     if (!isConnected || !isAuthenticated) {
       hasInitiatedDeposit.current = false;
+      setOnchainKitTxHash(null);
+      onchainKitSuccessHandled.current = false;
     }
   }, [isConnected, isAuthenticated]);
+
+  // Poll for OnchainKit transaction receipt (fixes mobile wallet apps not sending callbacks)
+  useEffect(() => {
+    if (!onchainKitTxHash || onchainKitSuccessHandled.current || !wagmiConfig) return;
+
+    let cancelled = false;
+    const pollInterval = setInterval(async () => {
+      if (cancelled || onchainKitSuccessHandled.current) return;
+
+      try {
+        const receipt = await getTransactionReceipt(wagmiConfig, {
+          hash: onchainKitTxHash,
+        });
+
+        if (receipt && receipt.status === "success" && !onchainKitSuccessHandled.current) {
+          onchainKitSuccessHandled.current = true;
+          clearInterval(pollInterval);
+          toast.success("Deposit confirmed! Your balance will update shortly.");
+          setAmount(0);
+          setOnchainKitTxHash(null);
+          options?.onSuccess?.();
+        } else if (receipt && receipt.status === "reverted") {
+          onchainKitSuccessHandled.current = true;
+          clearInterval(pollInterval);
+          toast.error("Transaction failed on chain");
+          setOnchainKitTxHash(null);
+          options?.onError?.("Transaction reverted");
+        }
+      } catch (err) {
+        // Transaction not yet mined, continue polling
+        console.log("Polling for tx receipt...", onchainKitTxHash);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    // Cleanup and timeout after 5 minutes
+    const timeout = setTimeout(() => {
+      clearInterval(pollInterval);
+      if (!onchainKitSuccessHandled.current) {
+        setOnchainKitTxHash(null);
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(pollInterval);
+      clearTimeout(timeout);
+    };
+  }, [onchainKitTxHash, options, wagmiConfig]);
 
   // Check if on wrong network
   const isWrongNetwork = currentChainId !== EXPECTED_CHAIN_ID;
@@ -121,10 +178,11 @@ console.log("isSmartWallet:", isSmartWallet);
       hash: depositTxHash,
     });
 console.log("isDepositPending:", depositTxHash, "isDepositConfirming:", isDepositConfirming, "isDepositSuccess:", isDepositSuccess);
-  // Computed deposit loading state
+  // Computed deposit loading state (includes OnchainKit polling)
+  const isPollingOnchainKit = !!onchainKitTxHash && !onchainKitSuccessHandled.current;
   const isDepositing = isSmartWallet
     ? cdpStatus === "pending"
-    : isDepositPending || isDepositConfirming;
+    : isDepositPending || isDepositConfirming || isPollingOnchainKit;
 
   // Handle EOA deposit transaction success
   useEffect(() => {
@@ -267,15 +325,31 @@ console.log("isDepositPending:", depositTxHash, "isDepositConfirming:", isDeposi
     }
   }, [amount, isSmartWallet, isWrongNetwork, smartAccount, sendUserOperation, sendTransaction, switchChain]);
 
-  // Handle OnchainKit transaction status (fallback)
+  // Handle OnchainKit transaction status (with polling fallback for mobile wallets)
   const handleOnchainStatus = useCallback(
     (status: LifecycleStatus) => {
       console.log("OnchainKit status:", status);
+
+      // Capture transaction hash when available (for mobile wallet polling)
+      if (status.statusName === "transactionPending") {
+        const txHash = (status.statusData as { transactionHash?: `0x${string}` })?.transactionHash;
+        if (txHash) {
+          console.log("Captured tx hash for polling:", txHash);
+          onchainKitSuccessHandled.current = false;
+          setOnchainKitTxHash(txHash);
+        }
+      }
+
       if (status.statusName === "success") {
+        // Mark as handled to prevent polling from firing duplicate success
+        onchainKitSuccessHandled.current = true;
+        setOnchainKitTxHash(null);
         toast.success("Deposit confirmed! Your balance will update shortly.");
         setAmount(0);
         options?.onSuccess?.();
       } else if (status.statusName === "error") {
+        onchainKitSuccessHandled.current = true;
+        setOnchainKitTxHash(null);
         const errorMessage =
           (status.statusData as { message?: string })?.message ||
           "Transaction failed";
