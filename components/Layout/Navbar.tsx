@@ -394,7 +394,7 @@ export default function Navbar() {
             {isWalletConnected && user ? (
               <Wallet>
                 <ConnectWallet className="!bg-transparent !p-0 !min-w-0">
-                  <Avatar className="!w-max !h-10 rounded-xl" />
+                  <Avatar className="!h-10 rounded-xl" />
                 </ConnectWallet>
                 <WalletDropdown className="!bg-black/95 !backdrop-blur-xl !border !w-full !border-white/10 !rounded-2xl !p-2 !my-0 !overflow-y-auto !z-[9999]">
                   <Identity className="px-3 py-3 mb-2" hasCopyAddressOnClick>
