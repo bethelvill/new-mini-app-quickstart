@@ -4,7 +4,7 @@ import React from 'react';
 export const Logo = () => {
   return (
     <Image
-      src='https://res.cloudinary.com/dnvsfxlan/image/upload/v1754824130/Group_1000001891_2_tybmb9.svg'
+      src='/logo.svg'
       alt='ShowStakr Logo'
       width={50}
       height={50}
