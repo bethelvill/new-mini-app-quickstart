@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import type { Poll, PollOption } from "@/types/api";
 import {
+  Check,
   ChevronRight,
   Coins,
   Eye,
@@ -296,7 +297,7 @@ export default function PollsPage() {
     }
   };
 
-  const quickAmounts = [0.01, 0.05, 0.1, 0.5];
+  const quickAmounts = [0.1, 1, 5, 10];
 
   return (
     <div className="min-h-screen bg-[#000000]">
@@ -453,23 +454,12 @@ export default function PollsPage() {
                 <div
                   key={poll.id}
                   onClick={() => router.push(`/polls/${poll.id}`)}
-                  className="group p-4 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#9A9A9A]/30 transition-colors cursor-pointer"
+                  className="group p-4 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] hover:border-[#9A9A9A]/30 transition-colors cursor-pointer flex flex-col"
                 >
                   {/* Badges */}
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
                     {getStatusBadge(poll.status)}
                     {getCategoryBadge(poll.category)}
-                    {userStaked && (
-                      <Badge className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
-                        Staked
-                      </Badge>
-                    )}
-                    {poll.status === "active" && timeLeft > 0 && (
-                      <Badge className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs ml-auto">
-                        <Timer className="w-3 h-3 mr-1" />
-                        {daysLeft > 0 ? `${daysLeft}d` : `${hoursLeft}h`}
-                      </Badge>
-                    )}
                   </div>
 
                   {/* Title */}
@@ -478,7 +468,7 @@ export default function PollsPage() {
                   </h3>
 
                   {/* Stats */}
-                  <div className="flex items-center gap-4 text-xs text-[#9A9A9A] mb-3">
+                  <div className="flex items-center gap-3 text-xs text-[#9A9A9A] mb-3">
                     {poll.totalStakeAmount > 0 && (
                       <span className="text-[#D8D8D8] font-normal inline-flex items-center gap-1">
                         <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
@@ -486,11 +476,61 @@ export default function PollsPage() {
                       </span>
                     )}
                     <span>{poll.totalParticipants || 0} players</span>
-                    <span>{poll.options.length} options</span>
+                    {poll.status === "active" && timeLeft > 0 && (
+                      <span className="inline-flex items-center gap-1 ml-auto">
+                        <Timer className="w-3 h-3" />
+                        {daysLeft > 0 ? `${daysLeft}d` : `${hoursLeft}h`} left
+                      </span>
+                    )}
                   </div>
 
+                  {/* Options Preview */}
+                  {poll.options && poll.options.length > 0 && (
+                    <div className="space-y-2 mb-3">
+                      {poll.options.slice(0, 2).map((option: any) => {
+                        const statisticsOption = poll.statistics?.options?.find(
+                          (o: any) => o.id === option.id
+                        );
+                        const percentage = statisticsOption?.percentage || 0;
+                        const isWinner =
+                          poll.status === "resolved" &&
+                          (poll.winningOptionId === option.id || poll.correctOptionId === option.id);
+
+                        return (
+                          <div key={option.id} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-[#9A9A9A] truncate max-w-[70%]">{option.text}</span>
+                              <span className={cn(
+                                "font-medium",
+                                isWinner ? "text-emerald-400" : "text-cyan-400"
+                              )}>
+                                {percentage.toFixed(0)}%
+                              </span>
+                            </div>
+                            <div className="h-1 bg-[#1F1F1F] rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-500"
+                                style={{
+                                  width: `${Math.min(percentage, 100)}%`,
+                                  background: isWinner
+                                    ? "rgb(16 185 129)"
+                                    : "rgb(34 211 238)",
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {poll.options.length > 2 && (
+                        <p className="text-[10px] text-[#9A9A9A]">
+                          +{poll.options.length - 2} more option{poll.options.length - 2 > 1 ? "s" : ""}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   {/* Actions */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-auto pt-2">
                     {poll.status === "active" && !isExpired && (
                       <Button
                         size="sm"
@@ -502,12 +542,21 @@ export default function PollsPage() {
                         className={cn(
                           "flex-1 h-9 rounded-full font-medium text-sm transition-colors",
                           userStaked
-                            ? "bg-[#151515] text-[#9A9A9A] cursor-not-allowed"
+                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default"
                             : "bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A]"
                         )}
                       >
-                        {userStaked ? "Staked" : "Stake"}
-                        <Coins className="w-3.5 h-3.5 ml-1.5" />
+                        {userStaked ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 mr-1.5" />
+                            You're in
+                          </>
+                        ) : (
+                          <>
+                            Stake
+                            <Coins className="w-3.5 h-3.5 ml-1.5" />
+                          </>
+                        )}
                       </Button>
                     )}
                     <Button
@@ -805,18 +854,27 @@ export default function PollsPage() {
                 className={cn(
                   "flex-1 h-11 rounded-full font-medium transition-colors",
                   hasUserStaked(selectedPoll)
-                    ? "bg-[#151515] text-[#9A9A9A] cursor-not-allowed"
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default"
                     : "bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A]"
                 )}
               >
-                <Coins className="w-4 h-4 mr-2" />
-                {hasUserStaked(selectedPoll) ? "Staked" : "Stake"}
+                {hasUserStaked(selectedPoll) ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    You're in
+                  </>
+                ) : (
+                  <>
+                    <Coins className="w-4 h-4 mr-2" />
+                    Stake
+                  </>
+                )}
               </Button>
             )}
             <Button
               onClick={() => router.push(`/polls/${selectedPoll?.id}`)}
               variant="outline"
-              className="flex-1 h-11 rounded-xl border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515]"
+              className="flex-1 h-11 rounded-full border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515]"
             >
               View Details
               <ChevronRight className="w-4 h-4 ml-1" />

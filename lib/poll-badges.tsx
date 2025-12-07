@@ -1,13 +1,16 @@
 import { Badge } from '@/components/ui/badge';
-import { Activity, Clock, Trophy, XCircle } from 'lucide-react';
+import { Clock, Trophy, XCircle } from 'lucide-react';
 import { POLL_CATEGORIES } from '@/constants/categories';
 
 export const getStatusBadge = (status: string) => {
   switch (status) {
     case 'active':
       return (
-        <Badge className=' text-emerald-400 border border-emerald-500/30'>
-          <Activity className='w-3 h-3 mr-1' />
+        <Badge className='text-emerald-400 border border-emerald-500/30'>
+          <span className='relative flex h-2 w-2 mr-1.5'>
+            <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75'></span>
+            <span className='relative inline-flex rounded-full h-2 w-2 bg-emerald-400'></span>
+          </span>
           Live
         </Badge>
       );
@@ -20,7 +23,7 @@ export const getStatusBadge = (status: string) => {
       );
     case 'resolved':
       return (
-        <Badge className='!bg-teal-500/5 text-emerald-400 border border-emerald-500/30'>
+        <Badge className='bg-amber-500/10 text-amber-400 border border-amber-500/30'>
           <Trophy className='w-3 h-3 mr-1' />
           Winner Declared
         </Badge>
@@ -43,7 +46,7 @@ export const getCategoryBadge = (category: string) => {
   if (!cat) return null;
 
   return (
-    <Badge className='!bg-purple-500/5 text-violet-400 border border-violet-500/30 text-xs font-semibold'>
+    <Badge className='bg-transparent text-[#9A9A9A] border border-[#1F1F1F] text-xs font-normal'>
       {cat.label}
     </Badge>
   );

@@ -24,7 +24,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePollById, usePollStats } from "@/lib/polls";
-import { useCalculateWinnings, useCreateStake, useMyStakes } from "@/lib/stakes";
+import {
+  useCalculateWinnings,
+  useCreateStake,
+  useMyStakes,
+} from "@/lib/stakes";
 import { usePlatformLimits } from "@/lib/platform-settings";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
@@ -78,7 +82,9 @@ export default function PollDetailsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [celebrationOpen, setCelebrationOpen] = useState(false);
-  const [celebrationType, setCelebrationType] = useState<"stake_placed" | "first_prediction">("stake_placed");
+  const [celebrationType, setCelebrationType] = useState<
+    "stake_placed" | "first_prediction"
+  >("stake_placed");
   const [celebrationAmount, setCelebrationAmount] = useState(0);
   const createStakeMutation = useCreateStake();
 
@@ -124,7 +130,9 @@ export default function PollDetailsPage() {
       <div className="min-h-screen bg-[#000000] flex items-center justify-center">
         <div className="text-center">
           <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h1 className="text-2xl font-semibold text-[#EDEDED] mb-4">Poll Not Found</h1>
+          <h1 className="text-2xl font-semibold text-[#EDEDED] mb-4">
+            Poll Not Found
+          </h1>
           <p className="text-[#9A9A9A] font-light mb-6">
             {` The poll you're looking for doesn't exist.`}
           </p>
@@ -231,7 +239,9 @@ export default function PollDetailsPage() {
 
           // Set celebration data and show modal
           setCelebrationAmount(amount);
-          setCelebrationType(isFirstPrediction ? "first_prediction" : "stake_placed");
+          setCelebrationType(
+            isFirstPrediction ? "first_prediction" : "stake_placed"
+          );
           setIsStakeDialogOpen(false);
           setStakeAmount("");
           setSelectedOptionId("");
@@ -251,7 +261,7 @@ export default function PollDetailsPage() {
     );
   };
 
-  const quickAmounts = [100, 500, 1000, 5000];
+  const quickAmounts = [0.1, 1, 5, 10];
   const timeLeft = poll.endTime
     ? new Date(poll.endTime).getTime() - Date.now()
     : 0;
@@ -266,7 +276,10 @@ export default function PollDetailsPage() {
 
       <div className="relative px-4 sm:px-6 py-6 max-w-3xl mx-auto">
         {/* Back Button */}
-        <Link href="/polls" className="inline-flex items-center gap-2 text-[#9A9A9A] hover:text-[#EDEDED] text-sm mb-4 transition-colors">
+        <Link
+          href="/polls"
+          className="inline-flex items-center gap-2 text-[#9A9A9A] hover:text-[#EDEDED] text-sm mb-4 transition-colors"
+        >
           <ArrowLeft className="w-4 h-4" />
           Back
         </Link>
@@ -286,8 +299,12 @@ export default function PollDetailsPage() {
           </div>
 
           {/* Title */}
-          <h1 className="text-xl sm:text-2xl font-semibold text-[#EDEDED] mb-2">{poll.title}</h1>
-          <p className="text-[#9A9A9A] text-sm font-light mb-4">{poll.description}</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#EDEDED] mb-2">
+            {poll.title}
+          </h1>
+          <p className="text-[#9A9A9A] text-sm font-light mb-4">
+            {poll.description}
+          </p>
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-3 mb-4">
@@ -305,7 +322,9 @@ export default function PollDetailsPage() {
             <div className="bg-[#151515] rounded-xl p-3">
               <p className="text-[#9A9A9A] text-xs font-light">Ends</p>
               <p className="text-[#EDEDED] font-medium text-sm">
-                {poll.endTime ? dayjs(poll.endTime).format("MMM D, h:mm A") : "Manual"}
+                {poll.endTime
+                  ? dayjs(poll.endTime).format("MMM D, h:mm A")
+                  : "Manual"}
               </p>
             </div>
             <div className="bg-[#151515] rounded-xl p-3">
@@ -344,7 +363,11 @@ export default function PollDetailsPage() {
                 onClick={handleStakeClick}
               >
                 <Coins className="w-4 h-4 mr-2" />
-                {timeLeft <= 0 ? "Ended" : hasUserStaked() ? "Staked" : "Place Stake"}
+                {timeLeft <= 0
+                  ? "Ended"
+                  : hasUserStaked()
+                  ? "Staked"
+                  : "Place Stake"}
               </Button>
             )}
           </div>
@@ -386,7 +409,8 @@ export default function PollDetailsPage() {
                   : 0;
               const isWinner =
                 poll.status === "resolved" &&
-                (poll.winningOptionId === option.id || poll.correctOptionId === option.id);
+                (poll.winningOptionId === option.id ||
+                  poll.correctOptionId === option.id);
 
               return (
                 <div
@@ -415,10 +439,12 @@ export default function PollDetailsPage() {
                         </Badge>
                       )}
                     </span>
-                    <span className={cn(
-                      "text-sm font-semibold",
-                      isWinner ? "text-emerald-400" : "text-cyan-400"
-                    )}>
+                    <span
+                      className={cn(
+                        "text-sm font-semibold",
+                        isWinner ? "text-emerald-400" : "text-cyan-400"
+                      )}
+                    >
                       {percentage.toFixed(1)}%
                     </span>
                   </div>
@@ -435,10 +461,20 @@ export default function PollDetailsPage() {
                   </div>
                   <div className="flex justify-between mt-1.5 text-xs text-[#9A9A9A]">
                     <span className="inline-flex items-center gap-1">
-                      <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                      <Image
+                        src="/usdc.svg"
+                        alt="USDC"
+                        width={12}
+                        height={12}
+                      />
                       {formatAmount(optionAmount)}
                     </span>
-                    <span>{statisticsOption?.participantCount || optionStat?.stakes || 0} stakes</span>
+                    <span>
+                      {statisticsOption?.participantCount ||
+                        optionStat?.stakes ||
+                        0}{" "}
+                      stakes
+                    </span>
                   </div>
                 </div>
               );
@@ -449,7 +485,10 @@ export default function PollDetailsPage() {
           {poll.status === "active" && !hasUserStaked() && timeLeft > 0 && (
             <div className="mt-4 p-4 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F]">
               <p className="text-[#9A9A9A] text-sm mb-3 inline-flex items-center gap-1 flex-wrap font-light">
-                Min: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{formatAmount(minStake)} • Balance: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{formatAmount(balance)}
+                Min: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                {formatAmount(minStake)} • Balance:{" "}
+                <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                {formatAmount(balance)}
               </p>
               <Button
                 className="w-full bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full"
@@ -458,16 +497,6 @@ export default function PollDetailsPage() {
                 <Coins className="w-4 h-4 mr-2" />
                 Place Your Stake
               </Button>
-            </div>
-          )}
-
-          {/* Resolved winner */}
-          {poll.status === "resolved" && poll.winningOptionId && (
-            <div className="mt-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30">
-              <p className="text-emerald-400 font-medium flex items-center gap-2">
-                <Trophy className="w-4 h-4" />
-                Winner: {poll.options.find((opt: any) => opt.id === poll.winningOptionId)?.text}
-              </p>
             </div>
           )}
         </div>
@@ -498,21 +527,34 @@ export default function PollDetailsPage() {
       >
         <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-[#EDEDED]">
           <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-[#EDEDED]">Place Your Stake</DialogTitle>
-            <DialogDescription className="text-[#9A9A9A] text-sm font-light">{poll.title}</DialogDescription>
+            <DialogTitle className="text-lg font-semibold text-[#EDEDED]">
+              Place Your Stake
+            </DialogTitle>
+            <DialogDescription className="text-[#9A9A9A] text-sm font-light">
+              {poll.title}
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-4 overflow-y-auto max-h-[60vh] px-1 pb-2">
             {/* Option Selection */}
             <div className="space-y-2">
-              <Label className="text-[#9A9A9A] text-sm font-light">Select prediction</Label>
-              <Select value={selectedOptionId} onValueChange={setSelectedOptionId}>
+              <Label className="text-[#9A9A9A] text-sm font-light">
+                Select prediction
+              </Label>
+              <Select
+                value={selectedOptionId}
+                onValueChange={setSelectedOptionId}
+              >
                 <SelectTrigger className="bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl">
                   <SelectValue placeholder="Choose an option" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#0A0A0A] border-[#1F1F1F] max-h-[200px]">
                   {poll.options?.map((option: any) => (
-                    <SelectItem key={option.id} value={option.id} className="text-[#EDEDED] hover:bg-[#151515]">
+                    <SelectItem
+                      key={option.id}
+                      value={option.id}
+                      className="text-[#EDEDED] hover:bg-[#151515]"
+                    >
                       {option.text}
                     </SelectItem>
                   ))}
@@ -524,7 +566,9 @@ export default function PollDetailsPage() {
               <>
                 {/* Amount Input */}
                 <div className="space-y-2">
-                  <Label className="text-[#9A9A9A] text-sm font-light">Amount (USDC)</Label>
+                  <Label className="text-[#9A9A9A] text-sm font-light">
+                    Amount (USDC)
+                  </Label>
                   <Input
                     type="number"
                     step="0.01"
@@ -543,7 +587,12 @@ export default function PollDetailsPage() {
                         size="sm"
                         className="text-xs inline-flex items-center gap-1 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515]"
                       >
-                        <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                        <Image
+                          src="/usdc.svg"
+                          alt="USDC"
+                          width={12}
+                          height={12}
+                        />
                         {amount}
                       </Button>
                     ))}
@@ -554,9 +603,16 @@ export default function PollDetailsPage() {
                 {winningsData?.data && parseFloat(stakeAmount) >= minStake && (
                   <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
                     <div className="flex justify-between text-sm">
-                      <span className="text-[#9A9A9A] font-light">Potential Win</span>
+                      <span className="text-[#9A9A9A] font-light">
+                        Potential Win
+                      </span>
                       <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
-                        <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                        <Image
+                          src="/usdc.svg"
+                          alt="USDC"
+                          width={12}
+                          height={12}
+                        />
                         {formatAmount(winningsData.data.grossWinnings)}
                       </span>
                     </div>
@@ -568,14 +624,31 @@ export default function PollDetailsPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-[#9A9A9A] font-light">Balance</span>
                     <span className="text-[#EDEDED] inline-flex items-center gap-1">
-                      <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                      <Image
+                        src="/usdc.svg"
+                        alt="USDC"
+                        width={12}
+                        height={12}
+                      />
                       {formatAmount(balance)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-[#9A9A9A] font-light">After</span>
-                    <span className={cn("inline-flex items-center gap-1", parseFloat(stakeAmount) > balance ? "text-red-400" : "text-emerald-400")}>
-                      <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1",
+                        parseFloat(stakeAmount) > balance
+                          ? "text-red-400"
+                          : "text-emerald-400"
+                      )}
+                    >
+                      <Image
+                        src="/usdc.svg"
+                        alt="USDC"
+                        width={12}
+                        height={12}
+                      />
                       {formatAmount(balance - parseFloat(stakeAmount || "0"))}
                     </span>
                   </div>
@@ -584,13 +657,31 @@ export default function PollDetailsPage() {
                 {/* Submit */}
                 <Button
                   onClick={handlePlaceStake}
-                  disabled={createStakeMutation.isPending || !stakeAmount || parseFloat(stakeAmount) < minStake}
+                  disabled={
+                    createStakeMutation.isPending ||
+                    !stakeAmount ||
+                    parseFloat(stakeAmount) < minStake
+                  }
                   className="w-full bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full disabled:opacity-50"
                 >
                   {createStakeMutation.isPending ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing...</>
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Placing...
+                    </>
                   ) : (
-                    <><Coins className="w-4 h-4 mr-2" />Stake <Image src="/usdc.svg" alt="USDC" width={16} height={16} className="mx-1" />{formatAmount(parseFloat(stakeAmount || "0"))}</>
+                    <>
+                      <Coins className="w-4 h-4 mr-2" />
+                      Stake{" "}
+                      <Image
+                        src="/usdc.svg"
+                        alt="USDC"
+                        width={16}
+                        height={16}
+                        className="mx-1"
+                      />
+                      {formatAmount(parseFloat(stakeAmount || "0"))}
+                    </>
                   )}
                 </Button>
               </>

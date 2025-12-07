@@ -187,55 +187,55 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Custom Text Selection Styles with Brand Colors */
+  /* Custom Text Selection Styles with Cyan Colors */
   ::selection {
-    background: #8b5cf6; /* violet-500 */
-    color: #ffffff;
+    background: #22d3ee; /* cyan-400 */
+    color: #000000;
   }
 
   ::-moz-selection {
-    background: #8b5cf6; /* violet-500 */
-    color: #ffffff;
+    background: #22d3ee; /* cyan-400 */
+    color: #000000;
   }
 
   /* Alternative selection for input fields and textareas */
   input::selection,
   textarea::selection {
-    background: #a78bfa; /* violet-400 for better visibility in inputs */
+    background: #06b6d4; /* cyan-500 for better visibility in inputs */
     color: #ffffff;
   }
 
   input::-moz-selection,
   textarea::-moz-selection {
-    background: #a78bfa; /* violet-400 for better visibility in inputs */
+    background: #06b6d4; /* cyan-500 for better visibility in inputs */
     color: #ffffff;
   }
 
-  /* Code blocks selection with pink accent */
+  /* Code blocks selection */
   code::selection,
   pre::selection {
-    background: #ec4899; /* pink-500 for code */
+    background: #0891b2; /* cyan-600 for code */
     color: #ffffff;
   }
 
   code::-moz-selection,
   pre::-moz-selection {
-    background: #ec4899; /* pink-500 for code */
+    background: #0891b2; /* cyan-600 for code */
     color: #ffffff;
   }
 
   /* Button text selection */
   button::selection {
-    background: #7c3aed; /* violet-600 */
+    background: #06b6d4; /* cyan-500 */
     color: #ffffff;
   }
 
   button::-moz-selection {
-    background: #7c3aed; /* violet-600 */
+    background: #06b6d4; /* cyan-500 */
     color: #ffffff;
   }
 
-  /* Custom scrollbar styles with brand colors */
+  /* Custom scrollbar styles with cyan colors */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -246,19 +246,19 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
     border-radius: 9999px;
     border: 2px solid black;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   }
 
-  /* Firefox scrollbar with brand colors */
+  /* Firefox scrollbar with cyan colors */
   * {
     scrollbar-width: thin;
-    scrollbar-color: #8b5cf6 #000000;
+    scrollbar-color: #22d3ee #000000;
   }
 }
 
@@ -456,14 +456,14 @@ button, a, input, textarea, select {
   transition: all 0.2s;
 }
 
-/* Focus styles with brand colors */
+/* Focus styles with cyan colors */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #000, 0 0 0 4px #8b5cf6;
+  box-shadow: 0 0 0 2px #000, 0 0 0 4px #22d3ee;
 }
 
 /* Special highlight classes for important text */

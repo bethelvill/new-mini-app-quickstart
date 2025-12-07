@@ -156,7 +156,7 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Logo */}
           <Link
-            href={user ? "/dashboard" : "/polls"}
+            href={user ? "/dashboard" : "/"}
             className="flex items-center gap-2 group"
           >
             <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">

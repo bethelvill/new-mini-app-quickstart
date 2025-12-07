@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,49 +12,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pagination } from "@/components/ui/pagination";
-import { cn } from "@/lib/utils";
+import { useWalletDeposit } from "@/hooks/useWalletDeposit";
 import { usePlatformLimits } from "@/lib/platform-settings";
+import { cn } from "@/lib/utils";
 import {
+  useCalculateWithdrawal,
   useTransactions,
   useWalletBalance,
   useWithdraw,
-  useCalculateWithdrawal,
 } from "@/lib/wallet";
 import { useAuthStore } from "@/stores/authStore";
-import { useWalletDeposit } from "@/hooks/useWalletDeposit";
 import {
-  Activity,
+  Transaction,
+  TransactionButton,
+  TransactionSponsor,
+  TransactionStatus,
+  TransactionStatusAction,
+  TransactionStatusLabel,
+} from "@coinbase/onchainkit/transaction";
+import dayjs from "dayjs";
+import {
   AlertCircle,
-  ArrowDownLeft,
   CheckCircle,
-  Clock,
   Coins,
   Copy,
-  Download,
-  Gift,
   Hash,
   Loader2,
   Plus,
   Send,
   Shield,
-  TrendingUp,
-  Trophy,
   Wallet,
-  XCircle,
+  XCircle
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import {
-  Transaction,
-  TransactionButton,
-  TransactionStatus,
-  TransactionStatusLabel,
-  TransactionStatusAction,
-  TransactionSponsor,
-} from "@coinbase/onchainkit/transaction";
+import Image from "next/image";
 import numeral from "numeral";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useAccount } from "wagmi";
-import dayjs from "dayjs";
 const EXPECTED_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 8453;
 
 export default function WalletPage() {
@@ -135,7 +128,7 @@ export default function WalletPage() {
   const totalDocs = responseData?.totalDocs || 0;
   const isLoading = isBalanceLoading || isTransactionsLoading;
 
-  const quickAmounts = [0.5, 1, 5, 10];
+  const quickAmounts = [0.1, 1, 5, 10];
 
   const isValidWalletAddress = (address: string) => {
     return /^0x[a-fA-F0-9]{40}$/.test(address);
@@ -176,68 +169,30 @@ export default function WalletPage() {
     );
   };
 
-  const getTransactionIcon = (type: string) => {
-    if (!type) return <Activity className="w-4 h-4 text-gray-400" />;
-    switch (type.toLowerCase()) {
-      case "deposit":
-        return <Download className="w-4 h-4 text-emerald-400" />;
-      case "withdrawal":
-      case "withdraw":
-        return <Send className="w-4 h-4 text-violet-400" />;
-      case "stake":
-        return <TrendingUp className="w-4 h-4 text-indigo-400" />;
-      case "win":
-      case "winnings":
-        return <Trophy className="w-4 h-4 text-amber-400" />;
-      case "refund":
-      case "refund_stake":
-        return <ArrowDownLeft className="w-4 h-4 text-blue-400" />;
-      case "bonus":
-        return <Gift className="w-4 h-4 text-violet-400" />;
-      default:
-        return <Activity className="w-4 h-4 text-gray-400" />;
-    }
-  };
-
   const getStatusBadge = (status: string) => {
     if (!status) return null;
-    switch (status.toLowerCase()) {
-      case "completed":
-      case "success":
-        return (
-          <Badge className="text-xs bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Done
-          </Badge>
-        );
-      case "pending":
-        return (
-          <Badge className="text-xs bg-amber-500/20 text-amber-400 border-amber-500/30">
-            <Clock className="w-3 h-3 mr-1" />
-            Pending
-          </Badge>
-        );
-      case "processing":
-        return (
-          <Badge className="text-xs bg-violet-500/20 text-violet-400 border-violet-500/30">
-            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-            Processing
-          </Badge>
-        );
-      case "failed":
-        return (
-          <Badge className="text-xs bg-red-500/20 text-red-400 border-red-500/30">
-            <XCircle className="w-3 h-3 mr-1" />
-            Failed
-          </Badge>
-        );
-      default:
-        return (
-          <Badge className="text-xs bg-gray-500/20 text-gray-400 border-gray-500/30">
-            {status}
-          </Badge>
-        );
-    }
+    const statusLower = status.toLowerCase();
+
+    // Hide badge for completed/success
+    if (statusLower === "completed" || statusLower === "success") return null;
+
+    const statusLabel =
+      status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
+    const styles: Record<string, string> = {
+      pending: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+      processing: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+      failed: "bg-red-500/10 text-red-400 border-red-500/20",
+    };
+
+    const style =
+      styles[statusLower] || "bg-gray-500/10 text-gray-400 border-gray-500/20";
+
+    return (
+      <Badge className={`text-[10px] py-0 px-1.5 font-normal ${style}`}>
+        {statusLabel}
+      </Badge>
+    );
   };
 
   const formatAmount = (amount: number, type: string) => {
@@ -292,7 +247,9 @@ export default function WalletPage() {
                 <Wallet className="w-5 h-5 text-[#D8D8D8]" />
               </div>
               <div>
-                <p className="text-sm text-[#9A9A9A] font-light">Total Balance</p>
+                <p className="text-sm text-[#9A9A9A] font-light">
+                  Total Balance
+                </p>
                 <p className="text-2xl font-semibold text-[#EDEDED] inline-flex items-center gap-2">
                   <Image src="/usdc.svg" alt="USDC" width={24} height={24} />
                   {numeral(balance).format("0,0.00")}
@@ -314,7 +271,7 @@ export default function WalletPage() {
             <Button
               onClick={() => setIsWithdrawDialogOpen(true)}
               variant="outline"
-              className="flex-1 h-11 border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515] rounded-xl transition-colors"
+              className="flex-1 h-11 border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515] rounded-full transition-colors"
             >
               <Send className="w-4 h-4 mr-2" />
               Withdraw
@@ -347,7 +304,9 @@ export default function WalletPage() {
         {/* Transaction History */}
         <div className="rounded-xl bg-[#0A0A0A] border border-[#1F1F1F] overflow-hidden">
           <div className="p-4 border-b border-[#1F1F1F]">
-            <h2 className="text-base font-medium text-[#EDEDED] mb-3">Transactions</h2>
+            <h2 className="text-base font-medium text-[#EDEDED] mb-3">
+              Transactions
+            </h2>
             {/* Filter Tabs */}
             <div className="flex gap-2">
               {[
@@ -391,41 +350,36 @@ export default function WalletPage() {
                     key={tx.id}
                     className="p-3 rounded-xl bg-[#151515] border border-[#1F1F1F] hover:border-[#9A9A9A]/20 transition-colors"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-[#1F1F1F]">
-                          {getTransactionIcon(tx.type)}
-                        </div>
-                        <div>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
                           <p className="text-sm font-normal text-[#EDEDED] capitalize">
                             {tx.type || "Transaction"}
                           </p>
-                          <p className="text-xs text-[#9A9A9A] font-light">
-                            {dayjs(tx.createdAt).format("D MMM, YYYY")} at{" "}
-                            {dayjs(tx.createdAt).format("h:mm A")}
-                          </p>
+                          {getStatusBadge(tx.status)}
                         </div>
+                        <p className="text-xs text-[#9A9A9A] font-light">
+                          {dayjs(tx.createdAt).format("D MMM, YYYY")} at{" "}
+                          {dayjs(tx.createdAt).format("h:mm A")}
+                        </p>
+                        {tx.reference && (
+                          <button
+                            onClick={() => copyToClipboard(tx.reference, tx.id)}
+                            className="flex items-center gap-1 text-xs text-[#9A9A9A] hover:text-[#D8D8D8] transition-colors mt-1"
+                          >
+                            <Hash className="w-3 h-3" />
+                            <span className="font-mono truncate max-w-[100px]">
+                              {tx.reference.slice(0, 8)}...
+                            </span>
+                            {copiedRef === tx.id ? (
+                              <CheckCircle className="w-3 h-3 text-emerald-400" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
+                          </button>
+                        )}
                       </div>
                       {formatAmount(tx.amount, tx.type)}
-                    </div>
-                    <div className="flex items-center justify-between">
-                      {getStatusBadge(tx.status)}
-                      {tx.reference && (
-                        <button
-                          onClick={() => copyToClipboard(tx.reference, tx.id)}
-                          className="flex items-center gap-1 text-xs text-[#9A9A9A] hover:text-[#D8D8D8] transition-colors"
-                        >
-                          <Hash className="w-3 h-3" />
-                          <span className="font-mono truncate max-w-[100px]">
-                            {tx.reference.slice(0, 8)}...
-                          </span>
-                          {copiedRef === tx.id ? (
-                            <CheckCircle className="w-3 h-3 text-emerald-400" />
-                          ) : (
-                            <Copy className="w-3 h-3" />
-                          )}
-                        </button>
-                      )}
                     </div>
                   </div>
                 ))}
@@ -520,7 +474,9 @@ export default function WalletPage() {
               >
                 <TransactionButton
                   disabled={
-                    !depositAmount || isDepositing || parseFloat(depositAmount) <= 0
+                    !depositAmount ||
+                    isDepositing ||
+                    parseFloat(depositAmount) <= 0
                   }
                   className="w-full bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full py-3"
                   text="Deposit USDC"
@@ -632,7 +588,9 @@ export default function WalletPage() {
                               width={12}
                               height={12}
                             />
-                            {withdrawalCalc.data.requestedAmount.toLocaleString()}
+                            {numeral(
+                              withdrawalCalc.data.requestedAmount
+                            ).format("0,0.00")}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
@@ -647,7 +605,9 @@ export default function WalletPage() {
                               width={12}
                               height={12}
                             />
-                            {withdrawalCalc.data.platformFee.toLocaleString()}
+                            {numeral(withdrawalCalc.data.platformFee).format(
+                              "0,0.00"
+                            )}
                           </span>
                         </div>
                         <div className="flex justify-between text-sm">
@@ -660,7 +620,9 @@ export default function WalletPage() {
                               width={12}
                               height={12}
                             />
-                            {withdrawalCalc.data.transferFee.toLocaleString()}
+                            {numeral(withdrawalCalc.data.transferFee).format(
+                              "0,0.00"
+                            )}
                           </span>
                         </div>
                         <div className="h-px bg-[#1F1F1F]" />
@@ -675,7 +637,9 @@ export default function WalletPage() {
                               width={14}
                               height={14}
                             />
-                            {withdrawalCalc.data.netAmount.toLocaleString()}
+                            {numeral(withdrawalCalc.data.netAmount).format(
+                              "0,0.00"
+                            )}
                           </span>
                         </div>
                       </div>
@@ -692,7 +656,9 @@ export default function WalletPage() {
                                 width={10}
                                 height={10}
                               />
-                              {withdrawalCalc.data.totalDebit.toLocaleString()}
+                              {numeral(withdrawalCalc.data.totalDebit).format(
+                                "0,0.00"
+                              )}
                             </p>
                           </div>
                         </div>
