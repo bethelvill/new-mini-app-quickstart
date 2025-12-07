@@ -1,23 +1,6 @@
 <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="50" height="50" rx="12" fill="#1C0F40"/>
-<rect x="11.5" y="7" width="7.53791" height="35.0945" fill="url(#paint0_linear_3524_72)"/>
-<path d="M19.0381 7H26.576L30.4067 24.6708L26.576 42.0945H19.0381L22.9306 24.6708L19.0381 7Z" fill="url(#paint1_linear_3524_72)"/>
-<path d="M28.8003 7H36.3382L40.1689 24.6708L36.3382 42.0945H28.8003L32.6928 24.6708L28.8003 7Z" fill="url(#paint2_linear_3524_72)"/>
-<defs>
-<linearGradient id="paint0_linear_3524_72" x1="16.2328" y1="41.5" x2="4.9452" y2="37.2337" gradientUnits="userSpaceOnUse">
-<stop stop-color="#FB923C"/>
-<stop offset="0.495192" stop-color="#F472B6"/>
-<stop offset="1" stop-color="#A78BFA"/>
-</linearGradient>
-<linearGradient id="paint1_linear_3524_72" x1="26.176" y1="41.5" x2="11.4918" y2="33.1294" gradientUnits="userSpaceOnUse">
-<stop stop-color="#FB923C"/>
-<stop offset="0.495192" stop-color="#F472B6"/>
-<stop offset="1" stop-color="#A78BFA"/>
-</linearGradient>
-<linearGradient id="paint2_linear_3524_72" x1="35.9382" y1="41.5" x2="21.254" y2="33.1294" gradientUnits="userSpaceOnUse">
-<stop stop-color="#FB923C"/>
-<stop offset="0.495192" stop-color="#F472B6"/>
-<stop offset="1" stop-color="#A78BFA"/>
-</linearGradient>
-</defs>
+<rect width="50" height="50" rx="12" fill="white" fill-opacity="0.15"/>
+<rect x="11" y="7" width="7.53791" height="35.0945" rx="3.76895" fill="white"/>
+<path d="M19.5218 11.4665C19.0165 9.17272 20.7627 7 23.1115 7C24.8415 7 26.3373 8.20631 26.7038 9.89702L29.6753 23.604C29.8277 24.3069 29.8266 25.0345 29.6721 25.737L26.71 39.21C26.3396 40.8945 24.8472 42.0945 23.1224 42.0945C20.7707 42.0945 19.0247 39.9154 19.5375 37.6203L22.1886 25.7533C22.3479 25.0403 22.349 24.3011 22.1918 23.5876L19.5218 11.4665Z" fill="white"/>
+<path d="M29.284 11.4665C28.7787 9.17272 30.5249 7 32.8737 7C34.6037 7 36.0995 8.20631 36.466 9.89702L39.4375 23.604C39.5899 24.3069 39.5888 25.0345 39.4344 25.737L36.4722 39.21C36.1018 40.8945 34.6094 42.0945 32.8846 42.0945C30.5329 42.0945 28.7869 39.9154 29.2997 37.6203L31.9508 25.7533C32.1101 25.0403 32.1112 24.3011 31.954 23.5876L29.284 11.4665Z" fill="white"/>
 </svg>
