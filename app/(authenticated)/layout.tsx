@@ -127,7 +127,7 @@ export default function AuthenticatedLayout({
             Sign In Required
           </h2>
           <p className="text-[#9A9A9A] text-sm font-light mb-6">
-            Connect your wallet to access this page
+            Sign in your wallet to access this page
           </p>
           <Link href="/">
             <Button className="bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full px-8">

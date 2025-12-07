@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Share2, Check } from "lucide-react";
+import { Share2, Check, PartyPopper } from "lucide-react";
 import Image from "next/image";
 import confetti from "canvas-confetti";
 import { useEffect } from "react";
@@ -71,15 +71,22 @@ export function CelebrationModal({
   // Trigger confetti on open
   useEffect(() => {
     if (open) {
+      const colors =
+        type === "win" || type === "claim"
+          ? ["#F59E0B", "#FB923C", "#FBBF24", "#FCD34D"] // amber/orange
+          : type === "win_streak"
+          ? ["#A855F7", "#EC4899", "#D946EF", "#F472B6"] // purple/pink
+          : ["#10B981", "#22D3D3", "#34D399", "#6EE7B7"]; // emerald/cyan
+
       confetti({
-        particleCount: 60,
-        spread: 50,
-        origin: { y: 0.7 },
-        colors: ["#EDEDED", "#D8D8D8", "#9A9A9A"],
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors,
         disableForReducedMotion: true,
       });
     }
-  }, [open]);
+  }, [open, type]);
 
   const handleShare = async () => {
     let message = "";
@@ -113,8 +120,20 @@ export function CelebrationModal({
         {/* Content */}
         <div className="px-6 pt-8 pb-6 text-center">
           {/* Success indicator */}
-          <div className="w-12 h-12 rounded-full bg-[#151515] border border-[#1F1F1F] flex items-center justify-center mx-auto mb-5">
-            <Check className="w-5 h-5 text-[#EDEDED]" />
+          <div className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5 ${
+            type === "win" || type === "claim"
+              ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30"
+              : type === "win_streak"
+              ? "bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30"
+              : "bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30"
+          }`}>
+            {type === "win" || type === "claim" ? (
+              <PartyPopper className="w-6 h-6 text-amber-400" />
+            ) : type === "win_streak" ? (
+              <PartyPopper className="w-6 h-6 text-purple-400" />
+            ) : (
+              <Check className="w-6 h-6 text-emerald-400" />
+            )}
           </div>
 
           {/* Title */}
@@ -126,7 +145,7 @@ export function CelebrationModal({
           {/* Amount */}
           {displayAmount && (
             <div className="mt-6 mb-2">
-              <p className="text-3xl font-semibold text-[#EDEDED] flex items-center justify-center gap-2">
+              <p className="text-3xl font-semibold flex items-center justify-center gap-2 text-emerald-400">
                 <Image src="/usdc.svg" alt="USDC" width={24} height={24} />
                 {displayAmount.toFixed(2)}
               </p>
@@ -136,7 +155,7 @@ export function CelebrationModal({
           {/* Win streak */}
           {type === "win_streak" && streakCount && (
             <div className="mt-6 mb-2">
-              <p className="text-3xl font-semibold text-[#EDEDED]">
+              <p className="text-3xl font-semibold text-purple-400">
                 {streakCount} wins
               </p>
             </div>

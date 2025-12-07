@@ -74,6 +74,7 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "win":
+      case "stake_won":
         return <Trophy className="w-4 h-4 text-amber-400" />;
       case "stake":
         return <TrendingUp className="w-4 h-4 text-violet-400" />;
@@ -93,6 +94,7 @@ export default function NotificationsPage() {
   const getIconBgColor = (type: string) => {
     switch (type) {
       case "win":
+      case "stake_won":
         return "bg-amber-500/15";
       case "stake":
         return "bg-violet-500/15";
@@ -134,12 +136,13 @@ export default function NotificationsPage() {
   };
 
   const handleNotificationClick = (notification: any) => {
-    // If it's a win notification that hasn't been read, show celebration
-    if (notification.type === "win" && notification.status !== "read") {
-      // Extract win data from notification metadata
-      const winnings = notification.metadata?.winnings || notification.metadata?.amount;
-      const pollTitle = notification.metadata?.pollTitle || notification.title;
-      const pollId = notification.metadata?.pollId;
+    // If it's a win notification, always show celebration
+    if (notification.type === "win" || notification.type === "stake_won") {
+      // Extract win data from notification data or metadata
+      const notificationData = notification.data || notification.metadata || {};
+      const winnings = notificationData.winnings || notificationData.amount;
+      const pollTitle = notificationData.pollTitle || notification.title;
+      const pollId = notificationData.pollId;
 
       setCelebrationData({
         pollTitle,
@@ -148,8 +151,10 @@ export default function NotificationsPage() {
       });
       setCelebrationOpen(true);
 
-      // Mark as read
-      markAsReadMutation.mutate(notification.id);
+      // Mark as read if not already
+      if (notification.status !== "read" && notification.status !== "sent") {
+        markAsReadMutation.mutate(notification.id);
+      }
     } else if (notification.actionUrl) {
       router.push(notification.actionUrl);
     }
@@ -315,12 +320,12 @@ export default function NotificationsPage() {
                     </div>
 
                     {/* Action Button */}
-                    {(notification.actionUrl || notification.type === "win") && (
+                    {(notification.actionUrl || notification.type === "win" || notification.type === "stake_won") && (
                       <button
                         onClick={() => handleNotificationClick(notification)}
                         className="mt-3 px-3 py-1.5 bg-[#151515] hover:bg-[#1F1F1F] border border-[#1F1F1F] rounded-lg text-[#EDEDED] text-xs font-medium transition-colors"
                       >
-                        {notification.type === "win" && notification.status !== "read"
+                        {notification.type === "win" || notification.type === "stake_won"
                           ? "Celebrate Win"
                           : notification.actionText || "View Details"}
                       </button>

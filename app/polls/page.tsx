@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import InsufficientBalanceModal from "@/components/modals/InsufficientBalanceModal";
+import { CelebrationModal } from "@/components/CelebrationModal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +33,7 @@ import {
   usePollStats,
   useResolvePoll,
 } from "@/lib/polls";
-import { useCalculateWinnings, useCreateStake } from "@/lib/stakes";
+import { useCalculateWinnings, useCreateStake, useMyStakes } from "@/lib/stakes";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import type { Poll, PollOption } from "@/types/api";
@@ -94,6 +95,11 @@ export default function PollsPage() {
   const [insufficientBalanceOpen, setInsufficientBalanceOpen] = useState(false);
   const [requiredStakeAmount, setRequiredStakeAmount] = useState(0);
   const createStakeMutation = useCreateStake();
+  const [celebrationOpen, setCelebrationOpen] = useState(false);
+  const [celebrationType, setCelebrationType] = useState<"stake_placed" | "first_prediction">("stake_placed");
+  const [celebrationAmount, setCelebrationAmount] = useState(0);
+  const [celebrationPollTitle, setCelebrationPollTitle] = useState("");
+  const [celebrationPollId, setCelebrationPollId] = useState("");
   const [isAdminDialogOpen, setIsAdminDialogOpen] = useState(false);
   const [adminAction, setAdminAction] = useState<
     "close" | "resolve" | "cancel" | "delete"
@@ -101,6 +107,7 @@ export default function PollsPage() {
   const [selectedWinnerId, setSelectedWinnerId] = useState("");
 
   const { data: selectedPollStats } = usePollStats(selectedPoll?.id || "");
+  const { data: myStakesData } = useMyStakes();
   const { data: winningsData } = useCalculateWinnings({
     pollId: selectedPoll?.id || "",
     selectedOptionId: selectedOption?.id || "",
@@ -178,12 +185,26 @@ export default function PollsPage() {
       {
         onSuccess: () => {
           updateBalance(balance - amount);
-          toast.success(`Staked ${amount} USDC on ${selectedOption.text}`);
+
+          // Check if this is user's first prediction
+          const isFirstPrediction = !myStakesData?.data?.docs?.length;
+
+          // Save celebration data before clearing state
+          setCelebrationAmount(amount);
+          setCelebrationType(isFirstPrediction ? "first_prediction" : "stake_placed");
+          setCelebrationPollTitle(selectedPoll?.title || "");
+          setCelebrationPollId(selectedPoll?.id || "");
+
           setIsStakeDialogOpen(false);
           setStakeAmount("");
           setSelectedOption(null);
           setSelectedPoll(null);
           refetch();
+
+          // Show celebration modal after a brief delay
+          setTimeout(() => {
+            setCelebrationOpen(true);
+          }, 300);
         },
         onError: (error: any) => {
           toast.error(error?.response?.data?.message || "Failed to place stake");
@@ -910,6 +931,16 @@ export default function PollsPage() {
         }}
         requiredAmount={requiredStakeAmount}
         currentBalance={balance}
+      />
+
+      {/* Celebration Modal */}
+      <CelebrationModal
+        open={celebrationOpen}
+        onClose={() => setCelebrationOpen(false)}
+        type={celebrationType}
+        pollTitle={celebrationPollTitle}
+        amount={celebrationAmount}
+        pollId={celebrationPollId}
       />
     </div>
   );
