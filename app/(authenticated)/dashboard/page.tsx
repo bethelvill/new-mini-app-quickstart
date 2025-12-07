@@ -255,8 +255,8 @@ export default function DashboardPage() {
                     }`}
                   >
                     {activity.isPositive ? "+" : "-"}
-                    <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                     {activity.amount}
+                    <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
                   </span>
                 </div>
               ))}

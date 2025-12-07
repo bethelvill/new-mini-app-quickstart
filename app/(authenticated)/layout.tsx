@@ -5,7 +5,10 @@ import { useAuthStore } from "@/stores/authStore";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { useMiniKit, useQuickAuth } from "@coinbase/onchainkit/minikit";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Loader2, LogIn } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface AuthResponse {
   success: boolean;
@@ -22,9 +25,10 @@ export default function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { isFrameReady, setFrameReady, context,  } = useMiniKit();
-  const { setUser, updateAdmin, updateSubAdmin, updateBalance } =
+  const { isFrameReady, setFrameReady, context } = useMiniKit();
+  const { user, setUser, updateAdmin, updateSubAdmin, updateBalance } =
     useAuthStore();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   // Proactive token refresh - refreshes before JWT expires (1hr)
   useTokenRefresh();
@@ -91,39 +95,49 @@ export default function AuthenticatedLayout({
     }
   }, [balanceData, balanceSuccess, updateBalance]);
 
+  // Check auth state after initial load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsCheckingAuth(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Show loading state while initializing
-  if (!isFrameReady) {
+  if (!isFrameReady || isCheckingAuth) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-400 mb-4"></div>
-          <p className="text-gray-400">Connecting...</p>
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 text-[#EDEDED] animate-spin mx-auto mb-3" />
+          <p className="text-[#9A9A9A] text-sm font-light">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // Show error if auth failed
-  // if (authError || (authData && !authData.success)) {
-  //   return (
-  //     <div className="min-h-screen bg-black flex items-center justify-center">
-  //       <div className="text-center flex flex-col items-center max-w-md px-4">
-  //         <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mb-4">
-  //           <span className="text-2xl">⚠️</span>
-  //         </div>
-  //         <h2 className="text-xl font-bold text-white mb-2">
-  //           Authentication Required
-  //         </h2>
-  //         <p className="text-gray-400 mb-4">
-  //           Please open this app from within Farcaster to authenticate.
-  //         </p>
-  //         <p className="text-sm text-gray-500">
-  //           {authData?.message || "Unable to verify your identity"}
-  //         </p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
+  // Show sign in required state if no user after checking
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#000000] flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="w-14 h-14 rounded-full bg-[#151515] border border-[#1F1F1F] flex items-center justify-center mx-auto mb-5">
+            <LogIn className="w-6 h-6 text-[#9A9A9A]" />
+          </div>
+          <h2 className="text-lg font-medium text-[#EDEDED] mb-2">
+            Sign In Required
+          </h2>
+          <p className="text-[#9A9A9A] text-sm font-light mb-6">
+            Connect your wallet to access this page
+          </p>
+          <Link href="/">
+            <Button className="bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full px-8">
+              Go to Home
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -11,6 +11,7 @@ import { authApi, useGetWalletMessage, useWalletSignIn } from "@/lib/auth";
 import { useUserProfile } from "@/lib/user";
 import { useAuthStore } from "@/stores/authStore";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 // Expected chain ID from environment
@@ -41,6 +42,8 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
   const { switchChain, isPending: isSwitchingNetwork } = useSwitchChain();
   const publicClient = usePublicClient();
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const getMessageMutation = useGetWalletMessage();
   const signInMutation = useWalletSignIn();
@@ -231,6 +234,11 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
         queryClient.invalidateQueries({ queryKey: ["user", "profile"] });
 
         toast.success("Successfully signed in!");
+
+        // Redirect to polls if on landing page
+        if (pathname === "/") {
+          router.push("/polls");
+        }
       }
     } catch (err: any) {
       console.error("Wallet sign-in error:", err);
@@ -264,6 +272,8 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
     updateSubAdmin,
     updateBalance,
     queryClient,
+    router,
+    pathname,
   ]);
 
   // Sign out

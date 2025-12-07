@@ -139,14 +139,9 @@ export default function PollDetailsPage() {
     );
   }
 
-  // Format numbers
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) {
-      return numeral(num).format("0.0a").toUpperCase();
-    } else if (num >= 1000) {
-      return numeral(num).format("0.0a");
-    }
-    return numeral(num).format("0,0");
+  // Format numbers with 4 decimal places
+  const formatAmount = (num: number) => {
+    return numeral(num).format("0,0.0000");
   };
 
   // Calculate statistics
@@ -300,12 +295,12 @@ export default function PollDetailsPage() {
               <p className="text-[#9A9A9A] text-xs font-light">Pool</p>
               <p className="text-emerald-400 font-semibold inline-flex items-center gap-1">
                 <Image src="/usdc.svg" alt="USDC" width={16} height={16} />
-                {formatNumber(totalAmount)}
+                {formatAmount(totalAmount)}
               </p>
             </div>
             <div className="bg-[#151515] rounded-xl p-3">
               <p className="text-[#9A9A9A] text-xs font-light">Players</p>
-              <p className="text-[#EDEDED] font-semibold">{formatNumber(totalStakes)}</p>
+              <p className="text-[#EDEDED] font-semibold">{totalStakes}</p>
             </div>
             <div className="bg-[#151515] rounded-xl p-3">
               <p className="text-[#9A9A9A] text-xs font-light">Ends</p>
@@ -317,7 +312,7 @@ export default function PollDetailsPage() {
               <p className="text-[#9A9A9A] text-xs font-light">Avg Stake</p>
               <p className="text-[#EDEDED] font-semibold inline-flex items-center gap-1">
                 <Image src="/usdc.svg" alt="USDC" width={16} height={16} />
-                {formatNumber(averageStake)}
+                {formatAmount(averageStake)}
               </p>
             </div>
           </div>
@@ -441,7 +436,7 @@ export default function PollDetailsPage() {
                   <div className="flex justify-between mt-1.5 text-xs text-[#9A9A9A]">
                     <span className="inline-flex items-center gap-1">
                       <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
-                      {formatNumber(optionAmount)}
+                      {formatAmount(optionAmount)}
                     </span>
                     <span>{statisticsOption?.participantCount || optionStat?.stakes || 0} stakes</span>
                   </div>
@@ -454,7 +449,7 @@ export default function PollDetailsPage() {
           {poll.status === "active" && !hasUserStaked() && timeLeft > 0 && (
             <div className="mt-4 p-4 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F]">
               <p className="text-[#9A9A9A] text-sm mb-3 inline-flex items-center gap-1 flex-wrap font-light">
-                Min: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{minStake} • Balance: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{balance.toLocaleString()}
+                Min: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{formatAmount(minStake)} • Balance: <Image src="/usdc.svg" alt="USDC" width={12} height={12} />{formatAmount(balance)}
               </p>
               <Button
                 className="w-full bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full"
@@ -562,7 +557,7 @@ export default function PollDetailsPage() {
                       <span className="text-[#9A9A9A] font-light">Potential Win</span>
                       <span className="text-emerald-400 font-semibold inline-flex items-center gap-1">
                         <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
-                        {winningsData.data.grossWinnings.toLocaleString()}
+                        {formatAmount(winningsData.data.grossWinnings)}
                       </span>
                     </div>
                   </div>
@@ -574,14 +569,14 @@ export default function PollDetailsPage() {
                     <span className="text-[#9A9A9A] font-light">Balance</span>
                     <span className="text-[#EDEDED] inline-flex items-center gap-1">
                       <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
-                      {balance.toLocaleString()}
+                      {formatAmount(balance)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-[#9A9A9A] font-light">After</span>
                     <span className={cn("inline-flex items-center gap-1", parseFloat(stakeAmount) > balance ? "text-red-400" : "text-emerald-400")}>
                       <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
-                      {(balance - parseFloat(stakeAmount || "0")).toLocaleString()}
+                      {formatAmount(balance - parseFloat(stakeAmount || "0"))}
                     </span>
                   </div>
                 </div>
@@ -595,7 +590,7 @@ export default function PollDetailsPage() {
                   {createStakeMutation.isPending ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Placing...</>
                   ) : (
-                    <><Coins className="w-4 h-4 mr-2" />Stake <Image src="/usdc.svg" alt="USDC" width={16} height={16} className="mx-1" />{parseFloat(stakeAmount || "0").toLocaleString()}</>
+                    <><Coins className="w-4 h-4 mr-2" />Stake <Image src="/usdc.svg" alt="USDC" width={16} height={16} className="mx-1" />{formatAmount(parseFloat(stakeAmount || "0"))}</>
                   )}
                 </Button>
               </>
