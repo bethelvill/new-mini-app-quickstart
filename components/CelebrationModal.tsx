@@ -145,7 +145,11 @@ export function CelebrationModal({
           {/* Amount */}
           {displayAmount && (
             <div className="mt-6 mb-2">
-              <p className="text-3xl font-semibold flex items-center justify-center gap-2 text-emerald-400">
+              <p className={`text-3xl font-semibold flex items-center justify-center gap-2 ${
+                type === "stake_placed" || type === "first_prediction"
+                  ? "text-[#EDEDED]"
+                  : "text-emerald-400"
+              }`}>
                 <Image src="/usdc.svg" alt="USDC" width={24} height={24} />
                 {displayAmount.toFixed(2)}
               </p>

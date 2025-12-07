@@ -4,29 +4,27 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import dayjs from 'dayjs';
 import html2canvas from 'html2canvas';
 import {
   Check,
   Copy,
   Download,
   Loader2,
-  MessageCircle,
-  Twitter
+  Share2,
 } from 'lucide-react';
 import numeral from 'numeral';
+import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 interface SharePollDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  poll: any
+  poll: any;
 }
 
 export default function SharePollDialog({
@@ -47,10 +45,9 @@ export default function SharePollDialog({
     try {
       await navigator.clipboard.writeText(pollUrl);
       setIsCopied(true);
-      toast.success('Link copied to clipboard!');
+      toast.success('Link copied!');
       setTimeout(() => setIsCopied(false), 2000);
 
-      // Track share event
       import('@/lib/analytics').then(({ trackPollShared }) => {
         trackPollShared(poll.id, 'link');
       });
@@ -64,9 +61,8 @@ export default function SharePollDialog({
 
     setIsCapturing(true);
     try {
-      // Capture the element
       const canvas = await html2canvas(pollCardRef.current, {
-        backgroundColor: '#0f0f1e',
+        backgroundColor: '#000000',
         scale: 2,
         logging: false,
         useCORS: true,
@@ -74,20 +70,13 @@ export default function SharePollDialog({
         removeContainer: false,
       });
 
-      // Create a new canvas to crop any extra space
       const croppedCanvas = document.createElement('canvas');
       const ctx = croppedCanvas.getContext('2d');
-
-      // Set the cropped canvas size
       croppedCanvas.width = canvas.width;
       croppedCanvas.height = canvas.height;
-
-      // Draw the captured image without any offset
       ctx?.drawImage(canvas, 0, 0);
 
       const image = croppedCanvas.toDataURL('image/png');
-
-      // Download the image immediately
       const link = document.createElement('a');
       link.href = image;
       link.download = `poll-${poll.id}.png`;
@@ -95,468 +84,249 @@ export default function SharePollDialog({
       link.click();
       document.body.removeChild(link);
 
-      toast.success('Poll card downloaded!');
+      toast.success('Image downloaded!');
     } catch (error) {
       console.error('Error capturing poll card:', error);
-      toast.error('Failed to capture poll card');
+      toast.error('Failed to download image');
     } finally {
       setIsCapturing(false);
     }
   };
 
-  const handleShareTwitter = () => {
-    const text = `Check out this poll on ShowStakr: ${poll.title}\n\n${poll.description}`;
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-      text
-    )}&url=${encodeURIComponent(pollUrl)}`;
-    window.open(url, '_blank');
+  const handleNativeShare = async () => {
+    const text = `${poll.title}\n\n${pollUrl}`;
 
-    // Track share event
-    import('@/lib/analytics').then(({ trackPollShared }) => {
-      trackPollShared(poll.id, 'twitter');
-    });
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+        import('@/lib/analytics').then(({ trackPollShared }) => {
+          trackPollShared(poll.id, 'native');
+        });
+      } catch {
+        // User cancelled
+      }
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success('Copied to clipboard!');
+    }
   };
 
-  const handleShareWhatsApp = () => {
-    const text = `Check out this poll on ShowStakr:\n\n*${poll.title}*\n\n${poll.description}\n\n${pollUrl}`;
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-
-    // Track share event
-    import('@/lib/analytics').then(({ trackPollShared }) => {
-      trackPollShared(poll.id, 'whatsapp');
-    });
-  };
-
-  // Calculate total amount and participants
-  const totalAmount =
-    poll.statistics?.totalAmount || poll.totalStakeAmount || 0;
-  const totalParticipants =
-    poll.statistics?.totalParticipants || poll.totalParticipants || 0;
+  const totalAmount = poll.statistics?.totalAmount || poll.totalStakeAmount || 0;
+  const totalParticipants = poll.statistics?.totalParticipants || poll.totalParticipants || 0;
 
   const formatNumber = (num: number) => {
-    if (num >= 1000000) {
-      return numeral(num).format('0.0a').toUpperCase();
-    } else if (num >= 1000) {
-      return numeral(num).format('0.0a');
-    }
-    return numeral(num).format('0,0');
+    if (num >= 1000000) return numeral(num).format('0.0a').toUpperCase();
+    if (num >= 1000) return numeral(num).format('0.0a');
+    return numeral(num).format('0,0.00');
   };
+
+  // Get sorted options with percentages
+  const sortedOptions = poll.options
+    ?.map((option: any) => {
+      const optionStat = poll.statistics?.options?.find((o: any) => o.id === option.id);
+      return {
+        ...option,
+        percentage: optionStat?.percentage || 0,
+      };
+    })
+    .sort((a: any, b: any) => b.percentage - a.percentage)
+    .slice(0, 3) || [];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='bg-black/95 backdrop-blur-xl border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto'>
-        <DialogHeader>
-          <DialogTitle className='text-xl sm:text-2xl font-bold bg-gradient-to-r from-violet-400 to-indigo-400 bg-clip-text text-transparent flex items-center gap-2'>
+      <DialogContent className="bg-[#0A0A0A] border-[#1F1F1F] text-[#EDEDED] max-w-sm p-0 gap-0 rounded-2xl overflow-hidden">
+        <DialogHeader className="px-5 pt-5 pb-4">
+          <DialogTitle className="text-lg font-semibold text-[#EDEDED]">
             Share Poll
           </DialogTitle>
-          <DialogDescription className='text-gray-400 text-left'>
-            Share this poll with others or download as an image
-          </DialogDescription>
         </DialogHeader>
 
-        <div className='space-y-6 mt-4'>
+        <div className="px-5 pb-5 space-y-4">
           {/* Hidden Poll Card for Capture */}
-          <div
-            style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}
-          >
+          <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
             <div
               ref={pollCardRef}
-              id='poll-card-capture'
               style={{
-                width: '600px',
-                background: 'linear-gradient(180deg, #0a0a0f 0%, #0f0f1a 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: '16px',
+                width: '480px',
+                background: '#000000',
+                borderRadius: '20px',
                 padding: '32px',
-                fontFamily:
-                  '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                position: 'relative',
-                boxShadow:
-                  '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               }}
             >
-              <table
+              {/* Logo */}
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <img
+                  src="https://res.cloudinary.com/dnvsfxlan/image/upload/v1754824130/Group_1000001891_2_tybmb9.svg"
+                  alt="Logo"
+                  style={{ width: '40px', height: '40px', margin: '0 auto' }}
+                />
+              </div>
+
+              {/* Title */}
+              <div
                 style={{
-                  width: '100%',
-                  borderCollapse: 'collapse',
+                  fontSize: '24px',
+                  fontWeight: '600',
+                  color: '#EDEDED',
+                  textAlign: 'center',
+                  marginBottom: '24px',
+                  lineHeight: '1.3',
                 }}
               >
-                {/* Logo and Header Row */}
-                <tr>
-                  <td
-                    colSpan={2}
-                    style={{
-                      padding: '0 0 24px 0',
-                      textAlign: 'center',
-                    }}
-                  >
+                {poll.title}
+              </div>
+
+              {/* Stats Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '12px',
+                  marginBottom: '24px',
+                }}
+              >
+                <div
+                  style={{
+                    flex: 1,
+                    background: '#0A0A0A',
+                    border: '1px solid #1F1F1F',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ color: '#9A9A9A', fontSize: '11px', marginBottom: '6px', fontWeight: '500' }}>
+                    POOL
+                  </div>
+                  <div style={{ color: '#EDEDED', fontSize: '20px', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    <img src="/usdc.svg" alt="USDC" style={{ width: '18px', height: '18px' }} />
+                    {formatNumber(totalAmount)}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    background: '#0A0A0A',
+                    border: '1px solid #1F1F1F',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div style={{ color: '#9A9A9A', fontSize: '11px', marginBottom: '6px', fontWeight: '500' }}>
+                    PLAYERS
+                  </div>
+                  <div style={{ color: '#EDEDED', fontSize: '20px', fontWeight: '600' }}>
+                    {totalParticipants}
+                  </div>
+                </div>
+              </div>
+
+              {/* Options */}
+              {sortedOptions.length > 0 && (
+                <div style={{ marginBottom: '20px' }}>
+                  {sortedOptions.map((option: any, index: number) => (
                     <div
+                      key={option.id}
                       style={{
+                        background: '#0A0A0A',
+                        border: '1px solid #1F1F1F',
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        marginBottom: '8px',
                         display: 'flex',
-                        flexDirection: 'column',
                         alignItems: 'center',
-                        gap: '8px',
+                        justifyContent: 'space-between',
                       }}
                     >
-                      <img
-                        src='https://res.cloudinary.com/dnvsfxlan/image/upload/v1754824130/Group_1000001891_2_tybmb9.svg'
-                        alt='Logo'
-                        style={{
-                          width: '48px',
-                          height: '48px',
-                          objectFit: 'contain',
-                        }}
-                      />
-                      <div
-                        style={{
-                          fontSize: '24px',
-                          fontWeight: '800',
-                          color: '#ffffff',
-                          letterSpacing: '-0.5px',
-                        }}
-                      >
-                        ShowStakr
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ color: '#9A9A9A', fontSize: '12px' }}>#{index + 1}</span>
+                        <span style={{ color: '#EDEDED', fontSize: '14px' }}>{option.text}</span>
                       </div>
+                      <span style={{ color: '#22D3D3', fontSize: '14px', fontWeight: '600' }}>
+                        {option.percentage.toFixed(1)}%
+                      </span>
                     </div>
-                  </td>
-                </tr>
-
-                {/* Title Row */}
-                <tr>
-                  <td
-                    colSpan={2}
-                    style={{
-                      fontSize: '32px',
-                      fontWeight: '700',
-                      color: '#ffffff',
-                      padding: '20px 0 12px 0',
-                      letterSpacing: '-0.5px',
-                    }}
-                  >
-                    {poll.title}
-                  </td>
-                </tr>
-
-                {/* Description Row */}
-                <tr>
-                  <td
-                    colSpan={2}
-                    style={{
-                      color: 'rgba(255, 255, 255, 0.6)',
-                      fontSize: '14px',
-                      padding: '0 0 24px 0',
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    {poll.description}
-                  </td>
-                </tr>
-
-                {/* Stats Row */}
-                <tr>
-                  <td
-                    style={{
-                      width: '50%',
-                      padding: '20px',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      textAlign: 'center',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        fontSize: '11px',
-                        marginBottom: '6px',
-                        fontWeight: '600',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      TOTAL POOL
+                  ))}
+                  {poll.options.length > 3 && (
+                    <div style={{ textAlign: 'center', color: '#9A9A9A', fontSize: '12px', marginTop: '4px' }}>
+                      +{poll.options.length - 3} more
                     </div>
-                    <div
-                      style={{
-                        color: '#10b981',
-                        fontWeight: '700',
-                        fontSize: '28px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                      }}
-                    >
-                      <img src="/usdc.svg" alt="USDC" style={{ width: '24px', height: '24px' }} />
-                      {formatNumber(totalAmount)}
-                    </div>
-                  </td>
-                  <td
-                    style={{
-                      width: '50%',
-                      padding: '20px',
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      textAlign: 'center',
-                      borderRadius: '12px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        color: 'rgba(255, 255, 255, 0.5)',
-                        fontSize: '11px',
-                        marginBottom: '6px',
-                        fontWeight: '600',
-                        letterSpacing: '0.5px',
-                      }}
-                    >
-                      PLAYERS
-                    </div>
-                    <div
-                      style={{
-                        color: '#8b5cf6',
-                        fontWeight: '700',
-                        fontSize: '28px',
-                      }}
-                    >
-                      {formatNumber(totalParticipants)}
-                    </div>
-                  </td>
-                </tr>
+                  )}
+                </div>
+              )}
 
-                {/* Spacer Row */}
-                <tr>
-                  <td colSpan={2} style={{ padding: '10px' }}></td>
-                </tr>
-
-                {/* Options Header */}
-                {poll.options && poll.options.length > 0 && (
-                  <>
-                    <tr>
-                      <td
-                        colSpan={2}
-                        style={{
-                          color: 'rgba(255, 255, 255, 0.5)',
-                          fontSize: '11px',
-                          fontWeight: '600',
-                          padding: '16px 0 12px 0',
-                          letterSpacing: '0.5px',
-                        }}
-                      >
-                        POLL OPTIONS
-                      </td>
-                    </tr>
-
-                    {/* Options List - sorted by percentage */}
-                    {(() => {
-                      const sortedOptions = poll.options
-                        .map((option: any) => {
-                          const optionStat = poll.statistics?.options?.find(
-                            (o: any) => o.id === option.id
-                          );
-                          return {
-                            ...option,
-                            percentage: optionStat?.percentage || 0,
-                          };
-                        })
-                        .sort((a: any, b: any) => b.percentage - a.percentage)
-                        .slice(0, 4);
-
-                      const colors = [
-                        '#8b5cf6',
-                        '#7c3aed',
-                        '#6366f1',
-                        '#4f46e5',
-                      ];
-
-                      return sortedOptions.map((option: any, index: number) => (
-                        <tr key={option.id}>
-                          <td colSpan={2} style={{ padding: '0 0 8px 0' }}>
-                            <table
-                              style={{
-                                width: '100%',
-                                background: 'rgba(255, 255, 255, 0.02)',
-                                border: '1px solid rgba(255, 255, 255, 0.06)',
-                                borderRadius: '8px',
-                                overflow: 'hidden',
-                              }}
-                            >
-                              <tr>
-                                <td
-                                  style={{
-                                    width: '30px',
-                                    padding: '10px',
-                                    textAlign: 'center',
-                                    backgroundColor: colors[index],
-                                    color: '#ffffff',
-                                    fontWeight: 'bold',
-                                    fontSize: '14px',
-                                  }}
-                                >
-                                  {index + 1}
-                                </td>
-                                <td
-                                  style={{
-                                    padding: '10px',
-                                    color: '#ffffff',
-                                    fontSize: '14px',
-                                  }}
-                                >
-                                  {option.text}
-                                </td>
-                                <td
-                                  style={{
-                                    width: '60px',
-                                    padding: '10px',
-                                    textAlign: 'center',
-                                    color: colors[index],
-                                    fontWeight: 'bold',
-                                    fontSize: '14px',
-                                  }}
-                                >
-                                  {option.percentage.toFixed(1)}%
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                      ));
-                    })()}
-
-                    {poll.options.length > 4 && (
-                      <tr>
-                        <td
-                          colSpan={2}
-                          style={{
-                            textAlign: 'center',
-                            color: '#6b7280',
-                            fontSize: '12px',
-                            padding: '5px 0',
-                          }}
-                        >
-                          +{poll.options.length - 4} more options
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                )}
-
-                {/* Footer Section */}
-                <tr>
-                  <td colSpan={2} style={{ padding: '20px 0 0 0' }}>
-                    <table
-                      style={{
-                        width: '100%',
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                        marginTop: '8px',
-                      }}
-                    >
-                      <tr>
-                        <td
-                          style={{
-                            padding: '16px',
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            fontSize: '11px',
-                            fontWeight: '500',
-                          }}
-                        >
-                          {dayjs(poll.createdAt).format('MMM D, YYYY • h:mm A')}
-                        </td>
-                        <td
-                          style={{
-                            padding: '16px',
-                            textAlign: 'right',
-                            color: 'rgba(255, 255, 255, 0.5)',
-                            fontSize: '11px',
-                            fontWeight: '500',
-                          }}
-                        >
-                          Powered by{' '}
-                          <span
-                            style={{
-                              color: '#8b5cf6',
-                              fontWeight: '700',
-                            }}
-                          >
-                            ShowStakr
-                          </span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-              </table>
+              {/* Footer */}
+              <div
+                style={{
+                  borderTop: '1px solid #1F1F1F',
+                  paddingTop: '16px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                }}
+              >
+                <span style={{ color: '#9A9A9A', fontSize: '12px' }}>showstakr.com</span>
+                <span style={{ color: '#9A9A9A', fontSize: '12px' }}>Predict & Win</span>
+              </div>
             </div>
           </div>
 
-          {/* Share Options */}
-          <div className='space-y-4'>
-            <div className='flex items-center justify-between'>
-              <h3 className='text-sm font-medium text-gray-300'>
-                Share Options
-              </h3>
-              <Button
-                size='sm'
-                onClick={handleCaptureAndDownload}
-                disabled={isCapturing}
-                className='bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600'
-              >
-                {isCapturing ? (
-                  <>
-                    <Loader2 className='w-4 h-4 mr-2 animate-spin' />
-                    Capturing...
-                  </>
-                ) : (
-                  <>
-                    <Download className='w-4 h-4 mr-2' />
-                    Download Card
-                  </>
-                )}
-              </Button>
+          {/* Preview Card */}
+          <div className="p-4 rounded-xl bg-[#151515] border border-[#1F1F1F]">
+            <p className="text-sm text-[#EDEDED] font-medium line-clamp-2 mb-3">
+              {poll.title}
+            </p>
+            <div className="flex items-center gap-4 text-xs text-[#9A9A9A]">
+              <span className="inline-flex items-center gap-1">
+                <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
+                {formatNumber(totalAmount)}
+              </span>
+              <span>{totalParticipants} players</span>
             </div>
+          </div>
 
-            {/* URL Copy */}
-            <div className='flex gap-2'>
-              <Input
-                value={pollUrl}
-                readOnly
-                className='bg-white/5 border-white/10 text-white rounded-xl'
-              />
-              <Button
-                onClick={handleCopyLink}
-                variant='outline'
-                className='border-white/20 text-white hover:bg-white/10'
-              >
-                {isCopied ? (
-                  <Check className='w-4 h-4' />
-                ) : (
-                  <Copy className='w-4 h-4' />
-                )}
-              </Button>
-            </div>
+          {/* URL Copy */}
+          <div className="flex gap-2">
+            <Input
+              value={pollUrl}
+              readOnly
+              className="h-10 bg-[#151515] border-[#1F1F1F] text-[#9A9A9A] text-sm rounded-xl"
+            />
+            <Button
+              onClick={handleCopyLink}
+              variant="outline"
+              className="h-10 px-3 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] rounded-xl"
+            >
+              {isCopied ? (
+                <Check className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
 
-            {/* Social Share Buttons */}
-            <div className='grid grid-cols-2 gap-3'>
-              <Button
-                onClick={handleShareTwitter}
-                variant='outline'
-                className='border-white/20 text-white hover:bg-white/10'
-              >
-                <Twitter className='w-4 h-4 mr-2' />
-                Share on X
-              </Button>
-              <Button
-                onClick={handleShareWhatsApp}
-                variant='outline'
-                className='border-white/20 text-white hover:bg-white/10'
-              >
-                <MessageCircle className='w-4 h-4 mr-2' />
-                WhatsApp
-              </Button>
-            </div>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button
+              onClick={handleNativeShare}
+              className="flex-1 h-11 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full"
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share
+            </Button>
+            <Button
+              onClick={handleCaptureAndDownload}
+              disabled={isCapturing}
+              variant="outline"
+              className="h-11 px-4 border-[#1F1F1F] text-[#D8D8D8] hover:bg-[#151515] rounded-xl"
+            >
+              {isCapturing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+            </Button>
           </div>
         </div>
       </DialogContent>
