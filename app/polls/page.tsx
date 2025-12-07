@@ -429,9 +429,9 @@ export default function PollsPage() {
 
         {/* Polls List */}
         {isLoading ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 rounded-xl bg-[#0A0A0A] animate-pulse" />
+              <div key={i} className="h-40 rounded-xl bg-[#0A0A0A] animate-pulse" />
             ))}
           </div>
         ) : polls.length === 0 ? (
@@ -441,7 +441,7 @@ export default function PollsPage() {
             <p className="text-[#9A9A9A] text-sm font-light">Try adjusting your filters</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {polls.map((poll: any) => {
               const timeLeft = new Date(poll.endTime).getTime() - Date.now();
               const hoursLeft = Math.max(0, Math.floor(timeLeft / (1000 * 60 * 60)));
