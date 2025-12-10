@@ -253,9 +253,25 @@ export default function GuidePage() {
                 Getting started on ShowStakr is quick and secure. Simply connect your crypto wallet to begin.
               </p>
 
-              <h3 className="text-[#EDEDED] font-medium mb-4">Wallet Sign-Up</h3>
+              {/* Built for Base */}
+              <div className="p-5 rounded-xl bg-[#0000ff]/5 border border-[#0000ff]/20 mb-6">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#0052FF] flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">B</span>
+                  </div>
+                  <div>
+                    <h4 className="text-[#EDEDED] font-medium">Built for Base</h4>
+                    <p className="text-[#9A9A9A] text-xs">Optimized experience on Base network</p>
+                  </div>
+                </div>
+                <p className="text-[#9A9A9A] text-sm font-light">
+                  ShowStakr is designed to work seamlessly within the Base ecosystem. For the smoothest experience, use it directly within the Base app or Coinbase Wallet.
+                </p>
+              </div>
+
+              <h3 className="text-[#EDEDED] font-medium mb-4">Supported Wallets</h3>
               <p className="text-[#9A9A9A] text-sm font-light mb-4">
-                ShowStakr supports most popular crypto wallets:
+                While optimized for Base, ShowStakr also supports these popular wallets:
               </p>
               <div className="space-y-3 mb-6">
                 <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F]">
@@ -265,7 +281,7 @@ export default function GuidePage() {
                     </div>
                     <div>
                       <p className="text-[#EDEDED] font-medium text-sm">Coinbase Wallet</p>
-                      <p className="text-[#9A9A9A] text-xs">Recommended for beginners</p>
+                      <p className="text-[#9A9A9A] text-xs">Recommended - Best integration with Base</p>
                     </div>
                   </div>
                 </div>
@@ -282,19 +298,19 @@ export default function GuidePage() {
                 </div>
                 <div className="p-4 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F]">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-[#3B99FC] flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">WC</span>
+                    <div className="w-8 h-8 rounded-lg bg-[#AB9FF2] flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">P</span>
                     </div>
                     <div>
-                      <p className="text-[#EDEDED] font-medium text-sm">WalletConnect</p>
-                      <p className="text-[#9A9A9A] text-xs">Connect any compatible mobile wallet</p>
+                      <p className="text-[#EDEDED] font-medium text-sm">Phantom</p>
+                      <p className="text-[#9A9A9A] text-xs">Multi-chain wallet with Base support</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
-                <h4 className="text-amber-400 font-medium mb-2">Base Network</h4>
+                <h4 className="text-amber-400 font-medium mb-2">Base Network Required</h4>
                 <p className="text-[#9A9A9A] text-sm font-light">
                   Make sure your wallet is connected to the Base network. If prompted, approve the network switch in your wallet.
                 </p>

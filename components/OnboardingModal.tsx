@@ -9,34 +9,37 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Wallet, Trophy, ChevronRight, ChevronLeft } from "lucide-react";
+import Image from "next/image";
 
 const ONBOARDING_KEY = "showstakr_onboarding_complete";
 
 interface OnboardingStep {
-  icon: React.ReactNode;
   title: string;
   description: string;
+  highlight?: string;
 }
 
 const steps: OnboardingStep[] = [
   {
-    icon: <TrendingUp className="w-12 h-12 text-violet-400" />,
+    title: "Welcome to ShowStakr",
+    description:
+      "The prediction market on Base. Back your predictions with USDC and win from those who got it wrong.",
+    highlight: "base",
+  },
+  {
     title: "Predict Outcomes",
     description:
-      "Browse entertainment polls and predict who gets evicted, wins challenges, or comes out on top. Your knowledge of reality TV pays off!",
+      "Browse polls across sports, crypto, entertainment, and more. Find topics where your knowledge gives you an edge.",
   },
   {
-    icon: <Wallet className="w-12 h-12 text-violet-400" />,
     title: "Stake USDC",
     description:
-      "Back your predictions with USDC. The more confident you are, the more you can stake. All transactions are gas-free!",
+      "Put your money where your mouth is. Stake as little as 0.1 USDC or go big if you're confident.",
   },
   {
-    icon: <Trophy className="w-12 h-12 text-violet-400" />,
-    title: "Win Rewards",
+    title: "Win & Withdraw",
     description:
-      "When your prediction is correct, you win a share of the pool based on your stake. Withdraw your winnings anytime!",
+      "Correct predictions win a share of the pool. Withdraw your winnings to your wallet anytime.",
   },
 ];
 
@@ -45,11 +48,9 @@ export function OnboardingModal() {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    // Check if user has completed onboarding
     const hasCompletedOnboarding = localStorage.getItem(ONBOARDING_KEY);
     if (!hasCompletedOnboarding) {
-      // Small delay to let the app load first
-      const timer = setTimeout(() => setIsOpen(true), 500);
+      const timer = setTimeout(() => setIsOpen(true), 800);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -83,81 +84,78 @@ export function OnboardingModal() {
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="sm:max-w-md bg-gray-900 border-gray-800">
+      <DialogContent className="sm:max-w-[340px] bg-[#0A0A0A] border-[#1F1F1F] p-0 gap-0 overflow-hidden rounded-2xl">
         <DialogHeader className="sr-only">
           <DialogTitle>Welcome to ShowStakr</DialogTitle>
-          <DialogDescription>
-            Learn how to predict and win
-          </DialogDescription>
+          <DialogDescription>Learn how to predict and win</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col items-center text-center py-4">
-          {/* Step indicator */}
-          <div className="flex gap-2 mb-6">
+        <div className="px-6 pt-8 pb-6">
+          {/* Step number */}
+          <div className="text-[11px] text-[#9A9A9A]/60 font-medium tracking-widest uppercase mb-6">
+            {currentStep + 1} of {steps.length}
+          </div>
+
+          {/* Title */}
+          <h2 className="text-[22px] font-semibold text-[#EDEDED] leading-tight mb-3">
+            {currentStepData.title}
+          </h2>
+
+          {/* Description */}
+          <p className="text-[15px] text-[#9A9A9A] font-light leading-relaxed">
+            {currentStepData.description}
+          </p>
+
+          {/* Base badge - only on first step */}
+          {currentStepData.highlight === "base" && (
+            <div className="mt-5 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#0000ff]/5 border border-[#0000ff]/10">
+              <Image src="/base-text.svg" alt="Base" width={36} height={12} />
+              <span className="text-xs text-[#9A9A9A]">Powered by Base</span>
+            </div>
+          )}
+        </div>
+
+        {/* Bottom section */}
+        <div className="px-6 pb-6 pt-2">
+          {/* Progress bar */}
+          <div className="flex gap-1 mb-5">
             {steps.map((_, index) => (
               <div
                 key={index}
-                className={`h-1.5 w-8 rounded-full transition-colors ${
-                  index === currentStep
-                    ? "bg-violet-500"
-                    : index < currentStep
-                    ? "bg-violet-500/50"
-                    : "bg-gray-700"
+                className={`h-[3px] flex-1 rounded-full transition-colors duration-300 ${
+                  index <= currentStep ? "bg-[#EDEDED]" : "bg-[#1F1F1F]"
                 }`}
               />
             ))}
           </div>
 
-          {/* Icon */}
-          <div className="mb-4 p-4 rounded-full bg-violet-500/10">
-            {currentStepData.icon}
-          </div>
-
-          {/* Content */}
-          <h2 className="text-xl font-bold text-white mb-2">
-            {currentStepData.title}
-          </h2>
-          <p className="text-gray-400 text-sm leading-relaxed max-w-sm">
-            {currentStepData.description}
-          </p>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-          <div>
+          {/* Buttons */}
+          <div className="flex gap-3">
             {currentStep > 0 ? (
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={handlePrevious}
-                className="text-gray-400 hover:text-white"
+                className="flex-1 h-11 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] rounded-full font-normal"
               >
-                <ChevronLeft className="w-4 h-4 mr-1" />
                 Back
               </Button>
             ) : (
               <Button
                 variant="ghost"
                 onClick={handleSkip}
-                className="text-gray-500 hover:text-gray-300"
+                className="flex-1 h-11 text-[#9A9A9A]/50 hover:text-[#9A9A9A] hover:bg-transparent font-normal"
               >
                 Skip
               </Button>
             )}
-          </div>
 
-          <Button
-            onClick={handleNext}
-            className="bg-violet-600 hover:bg-violet-700 text-white"
-          >
-            {isLastStep ? (
-              "Get Started"
-            ) : (
-              <>
-                Next
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </>
-            )}
-          </Button>
+            <Button
+              onClick={handleNext}
+              className="flex-1 h-11 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full"
+            >
+              {isLastStep ? "Get Started" : "Continue"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

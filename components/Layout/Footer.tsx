@@ -13,7 +13,7 @@ export default function Footer() {
   if (pathname !== "/") return null;
 
   return (
-    <footer className="border-t border-[#1F1F1F] bg-[#000000] max-md:mb-20">
+    <footer className="border-t border-[#1F1F1F] bg-[#000000]">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Logo & Copyright */}

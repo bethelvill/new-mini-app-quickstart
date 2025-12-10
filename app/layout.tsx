@@ -10,6 +10,7 @@ import Footer from "@/components/Layout/Footer";
 import { RQProvider } from "@/layouts/RQProvider";
 import { Toaster } from "sonner";
 import { Suspense } from "react";
+import { OnboardingModal } from "@/components/OnboardingModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -101,6 +102,7 @@ export default function RootLayout({
                     },
                   }}
                 />
+                <OnboardingModal />
                 <main className="min-h-screen pb-24 md:pb-0">{children}</main>
                 <Footer />
                 <BottomNav />

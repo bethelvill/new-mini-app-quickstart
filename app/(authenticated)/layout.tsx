@@ -3,7 +3,6 @@
 import { useWalletBalance } from "@/lib";
 import { useAuthStore } from "@/stores/authStore";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh";
-import { OnboardingModal } from "@/components/OnboardingModal";
 import { useMiniKit, useQuickAuth } from "@coinbase/onchainkit/minikit";
 import { useEffect, useState } from "react";
 import { Loader2, LogIn } from "lucide-react";
@@ -139,10 +138,5 @@ export default function AuthenticatedLayout({
     );
   }
 
-  return (
-    <>
-      <OnboardingModal />
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

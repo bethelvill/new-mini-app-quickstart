@@ -66,7 +66,7 @@ export default function PollsPage() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
-  const itemsPerPage = 9;
+  const itemsPerPage = 10;
 
   const apiParams = {
     page: currentPage,
