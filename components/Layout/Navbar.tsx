@@ -160,12 +160,15 @@ export default function Navbar() {
             href={user ? "/dashboard" : "/"}
             className="flex items-center gap-2 group"
           >
-            <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
+            <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
               <Logo />
+              <span className="absolute -top-1 -right-5 bg-gradient-to-r from-amber-500 to-orange-500 text-[8px] sm:text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full shadow-lg">
+                BETA
+              </span>
             </div>
-            <span className="text-lg sm:text-xl font-semibold tracking-tight text-[#EDEDED]">
+            {/* <span className="text-lg sm:text-xl font-semibold tracking-tight text-[#EDEDED]">
               ShowStakr
-            </span>
+            </span> */}
           </Link>
 
           {/* Desktop Navigation */}
