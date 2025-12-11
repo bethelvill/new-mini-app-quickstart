@@ -33,5 +33,6 @@ export const minikitConfig = {
     ogDescription:
       "Predict entertainment show outcomes. Stake on your favorites and win USDC from other players!",
     ogImageUrl: `${ROOT_URL}/hero.png`,
+    noindex: false,
   },
 } as const;
