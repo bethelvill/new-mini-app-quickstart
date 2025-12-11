@@ -8,6 +8,7 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
 
 // Mock polls for hero rotation
 const mockPolls = [
@@ -221,6 +222,14 @@ export default function Home() {
   const { data: pollsData } = useAllPolls();
   const [currentPollIndex, setCurrentPollIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { setFrameReady, isFrameReady } = useMiniKit();
+
+  // Signal that the app is ready to be displayed
+  useEffect(() => {
+    if (!isFrameReady) {
+      setFrameReady();
+    }
+  }, [setFrameReady, isFrameReady]);
 
   // Rotate through mock polls
   useEffect(() => {
