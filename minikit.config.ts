@@ -29,7 +29,7 @@ export const minikitConfig = {
     tags: ["predictions", "entertainment", "gaming", "crypto", "betting"],
     heroImageUrl: `${ROOT_URL}/hero.png`,
     tagline: "Turn Your Vibes Into Cash",
-    ogTitle: "ShowStakr - Entertainment Prediction Game",
+    ogTitle: "ShowStakr - Predict & Win",
     ogDescription:
       "Predict entertainment show outcomes. Stake on your favorites and win USDC from other players!",
     ogImageUrl: `${ROOT_URL}/hero.png`,
