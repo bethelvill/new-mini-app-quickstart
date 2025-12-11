@@ -21,7 +21,7 @@ export const minikitConfig = {
       "Predict entertainment show outcomes. Stake on your favorites and win USDC from other players!",
     screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
     iconUrl: `${ROOT_URL}/icon.png`,
-    splashImageUrl: `${ROOT_URL}/hero.png`,
+    splashImageUrl: `${ROOT_URL}/splash.png`,
     splashBackgroundColor: "#000000",
     homeUrl: ROOT_URL,
     webhookUrl: `${ROOT_URL}/api/webhook`,
