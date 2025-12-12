@@ -13,7 +13,6 @@ import { useAuthStore } from "@/stores/authStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter, usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { useMiniKit } from "@coinbase/onchainkit/minikit";
 
 // Expected chain ID from environment
 const EXPECTED_CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID) || 8453;
@@ -48,17 +47,8 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
 
   const getMessageMutation = useGetWalletMessage();
   const signInMutation = useWalletSignIn();
-  const { context } = useMiniKit();
-  const isMiniApp = !!context;
 
-  const {
-    user,
-    setUser,
-    updateAdmin,
-    updateSubAdmin,
-    updateBalance,
-    logout: storeLogout,
-  } = useAuthStore();
+  const { user, setUser, updateAdmin, updateSubAdmin, updateBalance, logout: storeLogout } = useAuthStore();
 
   // Check if user is on wrong network
   const isWrongNetwork = isConnected && chainId !== EXPECTED_CHAIN_ID;
@@ -111,14 +101,7 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
 
       profileChecked.current = true;
     }
-  }, [
-    profileData,
-    isConnected,
-    setUser,
-    updateAdmin,
-    updateSubAdmin,
-    updateBalance,
-  ]);
+  }, [profileData, isConnected, setUser, updateAdmin, updateSubAdmin, updateBalance]);
 
   // Clear user from store when profile fetch fails
   useEffect(() => {
@@ -155,10 +138,7 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
   // 2. Profile is not loading
   // 3. Either profile was fetched (but returned no user), profile errored, or auth was cleared (401)
   const showSignIn =
-    isConnected &&
-    !user &&
-    !isLoadingProfile &&
-    (isFetched || isProfileError || authCleared);
+    isConnected && !user && !isLoadingProfile && (isFetched || isProfileError || authCleared);
 
   // Combined loading state
   const isLoading =
@@ -199,12 +179,9 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
       // Step 2: Sign the message with wallet
       const signature = await signMessageAsync({ message });
 
-      // Step 3: Check if smart wallet or miniapp and verify on frontend
+      // Step 3: Check if smart wallet and verify on frontend (same pattern as backend)
       let verified: boolean | undefined;
-
-      // Auto-verify if in miniapp context (Farcaster)
       if (publicClient && address) {
-        // Check for smart wallet
         try {
           const bytecode = await publicClient.getCode({ address });
           console.log("Contract bytecode:", bytecode);
@@ -225,7 +202,7 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
         signature,
         ...(verified === true && { verified: true }),
       });
-      toast.info(verified ? "smart wallet" : "not smart");
+
       if (signInResponse.data?.user) {
         const userData = signInResponse.data.user;
 
@@ -290,7 +267,6 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
     signInMutation,
     signMessageAsync,
     publicClient,
-    isMiniApp,
     setUser,
     updateAdmin,
     updateSubAdmin,
