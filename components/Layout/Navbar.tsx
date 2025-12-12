@@ -49,6 +49,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAccount, useAccountEffect } from "wagmi";
 import { GradientOrbAvatar } from "@/components/ui/gradient-orb-avatar";
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,6 +57,8 @@ export default function Navbar() {
   const { user, isAdmin, isSubAdmin, updateBalance } = useAuthStore();
   const pathname = usePathname();
   const { address } = useAccount();
+  const { context } = useMiniKit();
+  const isMiniApp = !!context;
 
   // Use the comprehensive wallet auth hook
   const {
@@ -163,7 +166,7 @@ export default function Navbar() {
             <div className="relative w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0">
               <Logo />
               <span className="absolute -top-1 -right-5 bg-gradient-to-r from-amber-500 to-orange-500 text-[8px] sm:text-[9px] font-bold text-white px-1.5 py-0.5 rounded-full shadow-lg">
-                BETA
+                {isMiniApp ? "BETA-MINI" : "BETA"}
               </span>
             </div>
             {/* <span className="text-lg sm:text-xl font-semibold tracking-tight text-[#EDEDED]">
