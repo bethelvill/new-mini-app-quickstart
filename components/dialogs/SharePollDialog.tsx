@@ -21,6 +21,7 @@ import numeral from 'numeral';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { useMiniKit, useComposeCast } from '@coinbase/onchainkit/minikit';
 
 interface SharePollDialogProps {
   isOpen: boolean;
@@ -36,11 +37,38 @@ export default function SharePollDialog({
   const [isCopied, setIsCopied] = useState(false);
   const [isCapturing, setIsCapturing] = useState(false);
   const pollCardRef = useRef<HTMLDivElement>(null);
+  const { context } = useMiniKit();
+  const isMiniApp = !!context;
+  const { composeCast } = useComposeCast();
 
-  const pollUrl =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/polls/${poll.id}`
-      : '';
+  const totalAmount = poll.statistics?.totalAmount || poll.totalStakeAmount || 0;
+  const totalParticipants = poll.statistics?.totalParticipants || poll.totalParticipants || 0;
+
+  // Get top option for OG image
+  const sortedOptions = poll.options
+    ?.map((option: any) => {
+      const optionStat = poll.statistics?.options?.find((o: any) => o.id === option.id);
+      return {
+        ...option,
+        percentage: optionStat?.percentage || 0,
+      };
+    })
+    .sort((a: any, b: any) => b.percentage - a.percentage) || [];
+  const topOption = sortedOptions[0];
+
+  // Build share URL with dynamic OG image params
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const shareParams = new URLSearchParams();
+  shareParams.set('title', poll.title);
+  shareParams.set('pool', totalAmount.toFixed(2));
+  shareParams.set('players', totalParticipants.toString());
+  if (topOption) {
+    shareParams.set('option', topOption.text);
+    shareParams.set('percentage', topOption.percentage.toFixed(1));
+  }
+
+  const shareUrl = `${baseUrl}/share/poll/${poll.id}?${shareParams.toString()}`;
+  const pollUrl = `${baseUrl}/polls/${poll.id}`;
 
   const handleCopyLink = async () => {
     try {
@@ -95,11 +123,26 @@ export default function SharePollDialog({
   };
 
   const handleNativeShare = async () => {
-    const text = `${poll.title}\n\n${pollUrl}`;
+    const text = `${poll.title}`;
+
+    // Use MiniKit composeCast if in Farcaster context
+    if (isMiniApp && composeCast) {
+      composeCast({
+        text,
+        embeds: [shareUrl],
+      });
+      import('@/lib/analytics').then(({ trackPollShared }) => {
+        trackPollShared(poll.id, 'farcaster');
+      });
+      return;
+    }
+
+    // Fallback to native share or clipboard
+    const shareText = `${text}\n\n${pollUrl}`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ text });
+        await navigator.share({ text: shareText });
         import('@/lib/analytics').then(({ trackPollShared }) => {
           trackPollShared(poll.id, 'native');
         });
@@ -107,13 +150,10 @@ export default function SharePollDialog({
         // User cancelled
       }
     } else {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(shareText);
       toast.success('Copied to clipboard!');
     }
   };
-
-  const totalAmount = poll.statistics?.totalAmount || poll.totalStakeAmount || 0;
-  const totalParticipants = poll.statistics?.totalParticipants || poll.totalParticipants || 0;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return numeral(num).format('0.0a').toUpperCase();
@@ -121,17 +161,8 @@ export default function SharePollDialog({
     return numeral(num).format('0,0.00');
   };
 
-  // Get sorted options with percentages
-  const sortedOptions = poll.options
-    ?.map((option: any) => {
-      const optionStat = poll.statistics?.options?.find((o: any) => o.id === option.id);
-      return {
-        ...option,
-        percentage: optionStat?.percentage || 0,
-      };
-    })
-    .sort((a: any, b: any) => b.percentage - a.percentage)
-    .slice(0, 3) || [];
+  // Get top 3 options for display
+  const displayOptions = sortedOptions.slice(0, 3);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -300,7 +331,7 @@ export default function SharePollDialog({
                   <tr><td style={{ height: '28px' }}></td></tr>
 
                   {/* Options */}
-                  {sortedOptions.map((option: any, index: number) => (
+                  {displayOptions.map((option: any, index: number) => (
                     <tr key={option.id}>
                       <td>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>

@@ -7,6 +7,7 @@ import Image from "next/image";
 import confetti from "canvas-confetti";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useMiniKit, useComposeCast } from "@coinbase/onchainkit/minikit";
 
 interface CelebrationModalProps {
   open: boolean;
@@ -67,6 +68,9 @@ export function CelebrationModal({
 }: CelebrationModalProps) {
   const config = celebrationConfig[type];
   const displayAmount = winnings || amount;
+  const { context } = useMiniKit();
+  const isMiniApp = !!context;
+  const { composeCast } = useComposeCast();
 
   // Trigger confetti on open
   useEffect(() => {
@@ -96,10 +100,35 @@ export function CelebrationModal({
     else if (type === "win_streak") message = celebrationMessages.win_streak(streakCount);
     else if (type === "claim") message = celebrationMessages.claim(winnings);
 
-    const appUrl = pollId
-      ? `${window.location.origin}/polls/${pollId}`
-      : window.location.origin;
-    const shareText = `${message}\n\n${appUrl}`;
+    // Build dynamic share URL with OG image params
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const username = context?.user?.displayName || context?.user?.username || "Player";
+
+    // Map celebration type to share type
+    const shareType = type === "first_prediction" ? "first" :
+                      type === "stake_placed" ? "stake" :
+                      type === "win_streak" ? "win" : type;
+
+    // Build query params for OG image
+    const params = new URLSearchParams();
+    if (pollTitle) params.set("title", pollTitle);
+    if (displayAmount) params.set("amount", displayAmount.toFixed(2));
+    params.set("username", username);
+    if (streakCount) params.set("streak", streakCount.toString());
+
+    const shareUrl = `${baseUrl}/share/${shareType}/${pollId || "celebration"}?${params.toString()}`;
+
+    // Use MiniKit composeCast if in Farcaster context
+    if (isMiniApp && composeCast) {
+      composeCast({
+        text: message,
+        embeds: [shareUrl],
+      });
+      return;
+    }
+
+    // Fallback: Use Web Share API or copy to clipboard
+    const shareText = `${message}\n\n${shareUrl}`;
 
     if (navigator.share) {
       try {
