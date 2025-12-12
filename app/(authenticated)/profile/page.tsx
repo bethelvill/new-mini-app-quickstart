@@ -217,7 +217,7 @@ export default function ProfilePage() {
               <p className="text-xs text-[#9A9A9A] font-light">Staked</p>
               <p className="text-sm font-semibold text-cyan-400 flex items-center justify-center gap-1">
                 <Image src="/usdc.svg" alt="USDC" width={14} height={14} />
-                {numeral(userStats?.totalStaked || 0).format("0,0.000000")}
+                {numeral(userStats?.totalStaked || 0).format("0,0.00")}
               </p>
             </div>
           </div>
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                 <Trophy className="w-4 h-4 text-cyan-400 mx-auto mb-1" />
                 <p className="text-lg font-semibold text-[#EDEDED] flex items-center justify-center gap-1">
                   <Image src="/usdc.svg" alt="USDC" width={16} height={16} />
-                  {numeral(userStats?.totalStaked || 0).format("0,0.000000")}
+                  {numeral(userStats?.totalStaked || 0).format("0,0.00")}
                 </p>
                 <p className="text-xs text-[#9A9A9A] font-light">Total</p>
               </div>
@@ -476,7 +476,7 @@ export default function ProfilePage() {
                             </p>
                             <p className="text-xs text-[#9A9A9A] font-light flex items-center gap-1">
                               <Image src="/usdc.svg" alt="USDC" width={10} height={10} />
-                              {numeral(stake.amount).format("0,0.000000")} • {dayjs(stake.createdAt).fromNow()}
+                              {numeral(stake.amount).format("0,0.00")} • {dayjs(stake.createdAt).fromNow()}
                             </p>
                           </div>
                         </div>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAllPolls } from "@/lib/polls";
 import { useMyStakes } from "@/lib/stakes";
 import { useUserStatistics } from "@/lib/user";
+import { useWalletBalance } from "@/lib/wallet";
 import { useAuthStore } from "@/stores/authStore";
 import type { Poll } from "@/types/api";
 import {
@@ -19,13 +20,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import numeral from "numeral";
 
 export default function DashboardPage() {
-  const { user, balance } = useAuthStore();
+  const { user } = useAuthStore();
   const { data: pollsData, isLoading } = useAllPolls();
   const { data: userStatsResponse } = useUserStatistics();
   const { data: stakesData } = useMyStakes();
+  const { data: balanceData } = useWalletBalance();
   const router = useRouter();
+
+  const balance = balanceData?.data?.totalBalance || 0;
 
   const userStats = userStatsResponse?.data;
   const stakes = stakesData?.data?.docs || [];
@@ -35,7 +40,6 @@ export default function DashboardPage() {
   // Recent activity from stakes
   const recentActivity = stakes.slice(0, 4).map((stake: any) => {
     const isWin = stake.status === "won";
-    const isLoss = stake.status === "lost";
     const isRefund = stake.status === "refunded";
 
     return {
@@ -173,7 +177,7 @@ export default function DashboardPage() {
                           {poll.totalStakeAmount > 0 && (
                             <span className="text-emerald-400 font-normal inline-flex items-center gap-1">
                               <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
-                              {poll.totalStakeAmount}
+                              {numeral(poll.totalStakeAmount).format("0,0.00")}
                             </span>
                           )}
                           {poll.totalParticipants > 0 && (

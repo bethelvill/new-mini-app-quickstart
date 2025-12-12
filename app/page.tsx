@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
+import numeral from "numeral";
 
 // Mock polls for hero rotation
 const mockPolls = [
@@ -546,7 +547,7 @@ export default function Home() {
                           {poll.totalStakeAmount > 0 && (
                             <span className="text-[#D8D8D8] inline-flex items-center gap-1">
                               <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
-                              {poll.totalStakeAmount}
+                              {numeral(poll.totalStakeAmount).format("0,0.00")}
                             </span>
                           )}
                           {poll.totalParticipants > 0 && (
