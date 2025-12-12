@@ -54,7 +54,7 @@ export default function ProfilePage() {
   const updateNotificationPrefs = useUpdateNotificationPreferences();
   const updateProfile = useUpdateProfile();
 
-  const [activeTab, setActiveTab] = useState<"profile" | "preferences" | "activity">("profile");
+  const [activeTab, setActiveTab] = useState<"preferences" | "activity">("preferences");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
     firstName: "",
@@ -139,14 +139,6 @@ export default function ProfilePage() {
 
   const getVerificationBadges = () => {
     const badges = [];
-    if (user.isEmailVerified) {
-      badges.push(
-        <Badge key="email" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs">
-          <Mail className="w-3 h-3 mr-1" />
-          Verified
-        </Badge>
-      );
-    }
     if (user.kycCompleted) {
       badges.push(
         <Badge key="kyc" className="bg-violet-500/20 text-violet-400 border-violet-500/30 text-xs">
@@ -193,6 +185,7 @@ export default function ProfilePage() {
                 {capitalize(user.firstName)} {capitalize(user.lastName)}
               </h2>
               <p className="text-[#9A9A9A] text-sm truncate font-light">@{user.username}</p>
+              <p className="text-[#9A9A9A]/60 text-xs font-light mt-0.5">Member {memberSince}</p>
             </div>
           </div>
 
@@ -202,11 +195,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="text-center p-3 rounded-xl bg-[#151515]">
-              <p className="text-xs text-[#9A9A9A] font-light">Member</p>
-              <p className="text-sm font-medium text-[#EDEDED]">{memberSince}</p>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
             <div className="text-center p-3 rounded-xl bg-[#151515]">
               <p className="text-xs text-[#9A9A9A] font-light">Win Rate</p>
               <p className="text-sm font-semibold text-emerald-400">
@@ -226,7 +215,6 @@ export default function ProfilePage() {
         {/* Tabs */}
         <div className="flex gap-2 mb-4">
           {[
-            { value: "profile", label: "Profile", icon: User, activeColor: "text-[#EDEDED]", activeBg: "bg-[#151515]" },
             { value: "preferences", label: "Notifications", icon: Bell, activeColor: "text-red-400", activeBg: "bg-red-500/10" },
             { value: "activity", label: "Activity", icon: Activity, activeColor: "text-emerald-400", activeBg: "bg-emerald-500/10" },
           ].map((tab) => (
@@ -246,106 +234,6 @@ export default function ProfilePage() {
           ))}
         </div>
 
-        {/* Profile Tab */}
-        {activeTab === "profile" && (
-          <div className="rounded-2xl bg-[#0A0A0A] border border-[#1F1F1F] overflow-hidden">
-            <div className="p-4 border-b border-[#1F1F1F] flex items-center justify-between">
-              <h3 className="font-medium text-[#EDEDED]">Personal Info</h3>
-              {!isEditingProfile ? (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setIsEditingProfile(true)}
-                  className="h-8 border-[#1F1F1F] text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515] rounded-lg"
-                >
-                  <Edit3 className="w-3.5 h-3.5 mr-1" />
-                  Edit
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => {
-                    setIsEditingProfile(false);
-                    setProfileForm({
-                      firstName: user.firstName || "",
-                      lastName: user.lastName || "",
-                      username: user.username || "",
-                    });
-                  }}
-                  className="h-8 text-[#9A9A9A] hover:text-[#EDEDED] hover:bg-[#151515]"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              )}
-            </div>
-
-            <form onSubmit={handleProfileSubmit} className="p-4 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-[#9A9A9A] font-light">First Name</Label>
-                  <Input
-                    value={profileForm.firstName}
-                    onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
-                    disabled={!isEditingProfile}
-                    className="h-10 bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl disabled:opacity-50"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-[#9A9A9A] font-light">Last Name</Label>
-                  <Input
-                    value={profileForm.lastName}
-                    onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
-                    disabled={!isEditingProfile}
-                    className="h-10 bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl disabled:opacity-50"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs text-[#9A9A9A] font-light">Username</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A]">@</span>
-                  <Input
-                    value={profileForm.username}
-                    disabled
-                    className="h-10 pl-7 bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl opacity-50"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-xs text-[#9A9A9A] font-light">Email</Label>
-                <Input
-                  value={user.email}
-                  disabled
-                  className="h-10 bg-[#151515] border-[#1F1F1F] text-[#EDEDED] rounded-xl opacity-50"
-                />
-              </div>
-
-              {isEditingProfile && (
-                <Button
-                  type="submit"
-                  disabled={updateProfile.isPending}
-                  className="w-full h-11 bg-[#EDEDED] hover:bg-[#D8D8D8] text-[#0A0A0A] font-medium rounded-full disabled:opacity-50"
-                >
-                  {updateProfile.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              )}
-            </form>
-          </div>
-        )}
-
         {/* Preferences Tab */}
         {activeTab === "preferences" && (
           <div className="rounded-2xl bg-[#0A0A0A] border border-[#1F1F1F] overflow-hidden">
@@ -356,10 +244,8 @@ export default function ProfilePage() {
 
             <div className="p-4 space-y-3">
               {[
-                { key: "email", label: "Email", desc: "Get notified via email", icon: Mail, enabled: true, iconColor: "text-blue-400", iconBg: "bg-blue-500/10" },
                 { key: "push", label: "Push", desc: "Browser notifications", icon: Bell, enabled: true, iconColor: "text-amber-400", iconBg: "bg-amber-500/10" },
                 { key: "inApp", label: "In-App", desc: "Notifications in app", icon: Activity, enabled: true, iconColor: "text-emerald-400", iconBg: "bg-emerald-500/10" },
-                { key: "sms", label: "SMS", desc: "Coming soon", icon: Mail, enabled: false, iconColor: "text-[#9A9A9A]", iconBg: "bg-[#151515]" },
               ].map((channel) => (
                 <div
                   key={channel.key}

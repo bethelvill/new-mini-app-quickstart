@@ -19,6 +19,9 @@ export function RootProvider({ children }: { children: ReactNode }) {
         chain={chain}
         config={{
           appearance: {
+            name: "ShowStakr",
+            logo: "https://showstakr.tournest.io/icon.png",
+            theme: "default",
             mode: "auto",
           },
           wallet: {

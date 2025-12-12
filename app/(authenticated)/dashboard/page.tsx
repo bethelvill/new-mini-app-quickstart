@@ -121,7 +121,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <h2 className="text-base font-medium text-[#EDEDED]">Live Predictions</h2>
+              <h2 className="text-base font-medium text-[#EDEDED]">
+                Live Predictions
+              </h2>
             </div>
             <Link
               href="/polls"
@@ -174,15 +176,24 @@ export default function DashboardPage() {
                           {poll.title}
                         </h3>
                         <div className="flex items-center gap-3 mt-1.5 text-xs text-[#9A9A9A]">
-                          {poll.totalStakeAmount > 0 && (
-                            <span className="text-emerald-400 font-normal inline-flex items-center gap-1">
-                              <Image src="/usdc.svg" alt="USDC" width={12} height={12} />
-                              {numeral(poll.totalStakeAmount).format("0,0.00")}
-                            </span>
-                          )}
-                          {poll.totalParticipants > 0 && (
-                            <span>{poll.totalParticipants} players</span>
-                          )}
+                          {poll.totalStakeAmount &&
+                            poll.totalStakeAmount > 0 && (
+                              <span className="text-emerald-400 font-normal inline-flex items-center gap-1">
+                                <Image
+                                  src="/usdc.svg"
+                                  alt="USDC"
+                                  width={12}
+                                  height={12}
+                                />
+                                {numeral(poll.totalStakeAmount).format(
+                                  "0,0.00"
+                                )}
+                              </span>
+                            )}
+                          {poll.totalParticipants &&
+                            poll.totalParticipants > 0 && (
+                              <span>{poll.totalParticipants} players</span>
+                            )}
                           {timeLeft > 0 && (
                             <span>
                               {daysLeft > 0 ? `${daysLeft}d` : `${hoursLeft}h`}
@@ -201,12 +212,16 @@ export default function DashboardPage() {
 
         {/* Recent Activity */}
         <div className="mb-8">
-          <h2 className="text-base font-medium text-[#EDEDED] mb-4">Recent Activity</h2>
+          <h2 className="text-base font-medium text-[#EDEDED] mb-4">
+            Recent Activity
+          </h2>
 
           {recentActivity.length === 0 ? (
             <div className="text-center py-8 rounded-xl bg-[#0A0A0A] border border-[#1F1F1F]">
               <Target className="w-8 h-8 text-[#9A9A9A]/50 mx-auto mb-3" />
-              <p className="text-[#9A9A9A] text-sm font-light mb-1">No activity yet</p>
+              <p className="text-[#9A9A9A] text-sm font-light mb-1">
+                No activity yet
+              </p>
               <p className="text-[#9A9A9A]/60 text-xs font-light">
                 Make your first prediction
               </p>
