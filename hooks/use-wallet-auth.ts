@@ -51,7 +51,14 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
   const { context } = useMiniKit();
   const isMiniApp = !!context;
 
-  const { user, setUser, updateAdmin, updateSubAdmin, updateBalance, logout: storeLogout } = useAuthStore();
+  const {
+    user,
+    setUser,
+    updateAdmin,
+    updateSubAdmin,
+    updateBalance,
+    logout: storeLogout,
+  } = useAuthStore();
 
   // Check if user is on wrong network
   const isWrongNetwork = isConnected && chainId !== EXPECTED_CHAIN_ID;
@@ -104,7 +111,14 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
 
       profileChecked.current = true;
     }
-  }, [profileData, isConnected, setUser, updateAdmin, updateSubAdmin, updateBalance]);
+  }, [
+    profileData,
+    isConnected,
+    setUser,
+    updateAdmin,
+    updateSubAdmin,
+    updateBalance,
+  ]);
 
   // Clear user from store when profile fetch fails
   useEffect(() => {
@@ -141,7 +155,10 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
   // 2. Profile is not loading
   // 3. Either profile was fetched (but returned no user), profile errored, or auth was cleared (401)
   const showSignIn =
-    isConnected && !user && !isLoadingProfile && (isFetched || isProfileError || authCleared);
+    isConnected &&
+    !user &&
+    !isLoadingProfile &&
+    (isFetched || isProfileError || authCleared);
 
   // Combined loading state
   const isLoading =
@@ -186,9 +203,7 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
       let verified: boolean | undefined;
 
       // Auto-verify if in miniapp context (Farcaster)
-      if (isMiniApp) {
-        verified = true;
-      } else if (publicClient && address) {
+      if (publicClient && address) {
         // Check for smart wallet
         try {
           const bytecode = await publicClient.getCode({ address });
