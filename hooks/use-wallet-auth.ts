@@ -225,7 +225,7 @@ export const useWalletAuth = (): UseWalletAuthReturn => {
         signature,
         ...(verified === true && { verified: true }),
       });
-
+      toast.info(verified ? "smart wallet" : "not smart");
       if (signInResponse.data?.user) {
         const userData = signInResponse.data.user;
 
